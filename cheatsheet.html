@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图表选型决策器 · 《可视化导论》</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="i18n.css" />
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <header class="toolpage-header">
+    <a class="back" href="./">← 返回课程门户</a>
+    <h1>🎯 图表选型决策器</h1>
+    <p>回答左边 3 组问题，右侧即时给出 3 个推荐图表：适用理由、常见误用、D3 最小代码骨架、以及本课对应小节。</p>
+    <p style="margin-top:8px">想看到这些图表用<b>真实数据</b>画出来的样子（可交互）？去 <a class="back" href="gallery.html">🖼 可视化画廊 →</a></p>
+  </header>
+
+  <main class="toolpage-main">
+    <div class="dec-grid">
+      <!-- 左：问题面板 -->
+      <aside class="dec-panel" id="dec-panel"></aside>
+
+      <!-- 右：结果 -->
+      <section>
+        <div class="dec-breadcrumb" id="dec-breadcrumb">请先选择「数据关系」</div>
+        <div class="dec-result" id="dec-result">
+          <p class="search-empty">左侧选择后，这里会出现推荐结果。</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script type="module">
+/* =====================================================================
+ * 图表选型决策器 —— 打分式决策（比硬编码决策树更稳）
+ *   每个图表在 3 组问题的每个选项上有权重，最终取总分前 3。
+ * ===================================================================== */
+
+const QUESTIONS = [
+  {
+    id: "q1",
+    title: "① 你的数据主要想表达什么关系？",
+    opts: [
+      { k: "compare", t: "比较大小 / 排序" },
+      { k: "trend", t: "随时间变化" },
+      { k: "distribution", t: "分布（集中 or 离散）" },
+      { k: "composition", t: "构成（部分与整体）" },
+      { k: "correlation", t: "关联（一起变）" },
+      { k: "geo", t: "空间 / 地理" },
+      { k: "hierarchy", t: "层级 / 嵌套" },
+    ],
+  },
+  {
+    id: "q2",
+    title: "② 数据的变量结构？",
+    opts: [
+      { k: "onecat", t: "1 个类别维度" },
+      { k: "onenum", t: "1 个数值维度" },
+      { k: "twonum", t: "2 个数值维度" },
+      { k: "catnum", t: "1 类别 + 1 数值" },
+      { k: "many", t: "多个变量（≥3）" },
+      { k: "time", t: "含时间维度" },
+    ],
+  },
+  {
+    id: "q3",
+    title: "③ 最想让读者看到什么？",
+    opts: [
+      { k: "precise", t: "精确读数" },
+      { k: "overview", t: "整体概览" },
+      { k: "detail", t: "个体细节" },
+      { k: "outlier", t: "异常值" },
+      { k: "color", t: "密度 / 强度" },
+    ],
+  },
+];
+
+/* ---------- 图表目录（权重 → 决策；why/misuse/code/lesson） ---------- */
+const CHARTS = [
+  {
+    name: "柱状图", en: "Bar chart", kind: "bars",
+    w: { q1: { compare: 3, composition: 1 }, q2: { catnum: 3, onecat: 1, onenum: 1 }, q3: { precise: 3, overview: 1 } },
+    why: "长度是最精确的视觉通道，类别之间的比较没有比它更可靠的。",
+    misuse: "类别过多（>20）会挤成一片；纵轴不从 0 开始是常见作弊。",
+    code: 'const x = d3.scaleBand().domain(data.map(d=>d.name)).range([0,W]).padding(0.2);',
+    lesson: ["lesson-01/#ch-1-3", "lesson-04/#ch-4-2"],
+  },
+  {
+    name: "条形图（横向）", en: "Horizontal bar", kind: "hbars",
+    why: "类别名较长、或需要按大小排名时，横向排布可读性最好。",
+    misuse: "类别只有两三个时用横向条形会显得空；排序方向应统一。",
+    w: { q1: { compare: 3, composition: 1 }, q2: { catnum: 3, onecat: 2 }, q3: { precise: 3, overview: 1 } },
+    code: 'const y = d3.scaleBand().domain(data.map(d=>d.name)).range([0,H]).padding(0.2);',
+    lesson: ["lesson-01/#ch-1-3"],
+  },
+  {
+    name: "折线图", en: "Line chart", kind: "line",
+    why: "折线把相邻时间点连起来，斜率即变化率，是时间序列的默认答案。",
+    misuse: "时间点稀疏却连线会暗示不存在的连续性；多条线超过 5 条会成“意大利面”。",
+    w: { q1: { trend: 3, correlation: 1 }, q2: { time: 3, twonum: 1, catnum: 1 }, q3: { overview: 3, detail: 1 } },
+    code: 'const line = d3.line().x(d=>x(d.date)).y(d=>y(d.value));',
+    lesson: ["lesson-05/#ch-5-2", "lesson-04/#ch-4-3"],
+  },
+  {
+    name: "面积图 / 堆叠面积", en: "Area / Stacked area", kind: "area",
+    why: "在趋势之上叠加“总量”信息，适合表达随时间变化的累积。",
+    misuse: "堆叠时比较的是“累积量”而非“各自量”，中间层的趋势会被扭曲。",
+    w: { q1: { trend: 2, composition: 2 }, q2: { time: 3, many: 1 }, q3: { overview: 2 } },
+    code: 'const area = d3.area().x(d=>x(d.date)).y0(y(0)).y1(d=>y(d.value));',
+    lesson: ["lesson-05/#ch-5-2"],
+  },
+  {
+    name: "散点图", en: "Scatter plot", kind: "scatter",
+    why: "两个数值变量的联合分布一眼可见，相关、簇、异常都能读出来。",
+    misuse: "不处理 overplotting（重叠）时，密集中区会假装数据很少。",
+    w: { q1: { correlation: 3, distribution: 2 }, q2: { twonum: 3, many: 1 }, q3: { outlier: 2, detail: 2, overview: 1 } },
+    code: 'svg.selectAll("circle").data(data).join("circle").attr("cx",d=>x(d.a)).attr("cy",d=>y(d.b)).attr("r",3);',
+    lesson: ["lesson-01/#ch-1-3", "lesson-04/#ch-4-4"],
+  },
+  {
+    name: "气泡图", en: "Bubble chart", kind: "bubble",
+    why: "在散点上再加一个数值变量（半径），一次能看 3~4 个维度。",
+    misuse: "按半径编码时人眼读的是“面积”，必须做面积归一化；气泡不宜太多。",
+    w: { q1: { correlation: 2, composition: 1 }, q2: { many: 2, twonum: 1 }, q3: { outlier: 2, overview: 1 } },
+    code: 'const r = d3.scaleSqrt().domain([0, d3.max(data,d=>d.size)]).range([2,24]);',
+    lesson: ["lesson-01/#ch-1-3"],
+  },
+  {
+    name: "直方图", en: "Histogram", kind: "hist",
+    why: "先把连续值分箱再数频次，是看分布形状（偏态、双峰）的标准做法。",
+    misuse: "箱宽任意会改变结论；把类别当数值分箱是最常见的误用。",
+    w: { q1: { distribution: 3 }, q2: { onenum: 3 }, q3: { overview: 2, outlier: 1 } },
+    code: 'const bins = d3.bin().domain(x.domain()).thresholds(x.ticks(20))(values);',
+    lesson: ["lesson-01/#ch-1-4"],
+  },
+  {
+    name: "箱线图", en: "Box plot", kind: "box",
+    why: "五数概括（min/Q1/中位数/Q3/max）一屏对比多个分布，异常值自动标出。",
+    misuse: "样本量很小（n<10）时箱线图的四分位不具代表性。",
+    w: { q1: { distribution: 3, compare: 1 }, q2: { catnum: 1, onenum: 1, many: 1 }, q3: { outlier: 3, precise: 1 } },
+    code: 'const q1 = d3.quantile(sorted, 0.25), q3 = d3.quantile(sorted, 0.75);',
+    lesson: ["lesson-01/#ch-1-4"],
+  },
+  {
+    name: "蜂群图 / 小提琴图", en: "Swarm / Violin", kind: "violin",
+    why: "既保留分布形状又保留每个个体，适合样本量中等的组间对比。",
+    misuse: "点太密时会互相遮挡；小提琴图需要读者懂核密度，认知门槛较高。",
+    w: { q1: { distribution: 2, compare: 1 }, q2: { catnum: 2, many: 1 }, q3: { detail: 3, outlier: 1 } },
+    code: 'const sim = d3.forceSimulation(points).force("x", d3.forceX(d=>x(d.group)))',
+    lesson: ["lesson-02/#ch-2-3"],
+  },
+  {
+    name: "热力图", en: "Heatmap", kind: "heat",
+    why: "用颜色填充矩阵，把“两个类别维度 + 1 个数值”压进一张图，密度一目了然。",
+    misuse: "用彩虹色系（rainbow）会让读者读出假的高低顺序——应用顺序型 colormap。",
+    w: { q1: { correlation: 2, composition: 1 }, q2: { many: 3, catnum: 2 }, q3: { color: 3, overview: 2 } },
+    code: 'const c = d3.scaleSequential(d3.interpolateViridis).domain([0, max]);',
+    lesson: ["lesson-03/#ch-3-2"],
+  },
+  {
+    name: "日历热图", en: "Calendar heatmap", kind: "calendar",
+    why: "把一年压成一屏，同时保留“周”和“月”的周期感（van Wijk 布局）。",
+    misuse: "只适合“按天”的固定粒度数据；跨年对比需要多张小图并排。",
+    w: { q1: { trend: 2, composition: 1, compare: 1 }, q2: { time: 3 }, q3: { color: 2, overview: 2 } },
+    code: '// x = 周序号，y = 星期，用 d3.scaleSequential 编码数值',
+    lesson: ["lesson-05/#ch-5-3"],
+  },
+  {
+    name: "饼图 / 环形图", en: "Pie / Donut", kind: "pie",
+    why: "只表达“部分与整体”且类别很少（3~5 个）时，扇形角度的直觉够用。",
+    misuse: "比较相近扇形的角度几乎不可靠；类别一多就必须换堆叠条形图。",
+    w: { q1: { composition: 3 }, q2: { onecat: 3 }, q3: { overview: 2 } },
+    code: 'const arcs = d3.pie().value(d=>d.value)(data);',
+    lesson: ["lesson-01/#ch-1-3"],
+  },
+  {
+    name: "树图 Treemap", en: "Treemap", kind: "treemap",
+    why: "用面积表达层级中的占比，能在有限空间里展示很深的嵌套结构。",
+    misuse: "不标层级边界时读者不知道谁属于谁；面积比较同样不如长度精确。",
+    w: { q1: { hierarchy: 3, composition: 2 }, q2: { many: 2 }, q3: { color: 2, overview: 2 } },
+    code: 'const root = d3.hierarchy(treeData).sum(d=>d.value); d3.treemap().size([W,H])(root);',
+    lesson: ["lesson-02/#ch-2-2"],
+  },
+  {
+    name: "平行坐标", en: "Parallel coordinates", kind: "parallel",
+    why: "多变量（≥4）筛选与聚类的好工具：每条折线是一个样本，轴是变量。",
+    misuse: "轴顺序会显著改变模式；线太多时必然糊成一团，需要交互高亮。",
+    w: { q1: { correlation: 2, distribution: 1 }, q2: { many: 3 }, q3: { detail: 2, outlier: 2 } },
+    code: 'const y = {}; dims.forEach(k => y[k] = d3.scaleLinear().domain(d3.extent(data,d=>d[k])).range([H,0]));',
+    lesson: ["lesson-04/#ch-4-2"],
+  },
+  {
+    name: "等值线 / 等高线", en: "Contour lines", kind: "contour",
+    why: "把标量场（地形、密度、温度）的“等值”位置画成线，比色块更利于读数。",
+    misuse: "等值距不公布会让读者误判坡度；线过密时需要分层稀疏。",
+    w: { q1: { geo: 3, distribution: 1, correlation: 1 }, q2: { twonum: 3, many: 1 }, q3: { color: 1, precise: 1 } },
+    code: '// Marching Squares：对每个网格单元的 4 个角做 16 种情况的插值',
+    lesson: ["lesson-04/#ch-4-5"],
+  },
+  {
+    name: "斜率图 / 哑铃图", en: "Slopegraph", kind: "slope",
+    why: "只有前后两个时间点、又强调“谁涨谁跌”时，把两条轴上的同一实体连起来，斜率本身就是读数。",
+    misuse: "时间点超过 2~3 个就会退化成折线图；实体过多时线会交叉成网，需先按变化幅度排序。",
+    w: { q1: { trend: 3, compare: 2, correlation: 1 }, q2: { time: 3, catnum: 2, twonum: 1 }, q3: { overview: 2, precise: 2, outlier: 1 } },
+    code: 'const l = d3.line().x(d => x(d.period)).y(d => y(d.value)); // 每个实体一条 d.key 线',
+    lesson: ["lesson-05/#ch-5-2", "lesson-01/#ch-1-3"],
+  },
+];
+
+/* ---------- 迷你预览 SVG ----------
+ * 每个数据图元都带 class="mini-mark" 与原生 <title>（无脚本时的兜底说明），
+ * 悬停时由 bindMini() 的事件委托驱动 .dec-mini-tip 浮层。 */
+const escTip = (t) =>
+  String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const mk = (el, tip) =>
+  el.replace(
+    /^<([\w-]+)([\s\S]*?)\/>$/,
+    (_, tag, attrs) =>
+      `<${tag}${attrs} class="mini-mark"><title>${escTip(tip)}</title></${tag}>`
+  );
+
+function preview(kind) {
+  const W = 180, H = 100, s = [];
+  const ax = '<line x1="14" y1="10" x2="14" y2="88" stroke="#cbd5e1"/><line x1="14" y1="88" x2="172" y2="88" stroke="#cbd5e1"/>';
+  const bars = (horiz, tip) => {
+    let out = ax;
+    const hs = [30, 52, 40, 66, 46, 58];
+    hs.forEach((h, i) => {
+      const el = horiz
+        ? `<rect x="18" y="${12 + i * 12}" width="${h * 1.9}" height="8" rx="2" fill="#6366f1" opacity="${0.55 + i * 0.07}"/>`
+        : `<rect x="${18 + i * 25}" y="${88 - h}" width="16" height="${h}" rx="3" fill="#6366f1" opacity="${0.55 + i * 0.07}"/>`;
+      out += mk(el, tip);
+    });
+    return out;
+  };
+  const pts = [[24,74],[48,60],[72,66],[96,38],[120,44],[144,22]];
+  const T = {
+    bar: "矩形长度 = 该类别数值；长度是最精确的视觉通道",
+    dot: "折点 = 某一时刻的观测值",
+    line: "折线斜率 = 变化率，最适合读时间趋势",
+    area: "面积 = 随时间累积的总量",
+    scatter: "每个点 = 两个数值变量的一次联合观测（相关 / 簇 / 异常都在这里读）",
+    bubble: "圆面积 = 第三个数值变量（半径须用 d3.scaleSqrt 归一化）",
+    hist: "每根柱 = 落在该分箱内的样本频次（改箱宽会改结论）",
+    box: "箱体 = Q1~Q3（四分位距），须 = 1.5×IQR 以内的极值",
+    violin: "轮廓宽度 = 该数值处的密度估计",
+    heat: "色块 = 两个类别交叉处的数值（必须用顺序型 colormap）",
+    cal: "色块 = 当日数值；列 = 周，行 = 星期",
+    pie: "扇形角度 = 占比（只适合类别很少的部分-整体）",
+    treemap: "矩形面积 = 该层级节点的占比，边界即层级",
+    parallel: "每条折线 = 一个样本在 4 个变量轴上的取值",
+    contour: "曲线 = 数值相等的点连成的等值线，线距密 = 变化陡",
+    slope: "连线 = 同一实体的前后取值，斜率就是变化幅度",
+  };
+  switch (kind) {
+    case "bars": s.push(bars(false, T.bar)); break;
+    case "hbars": s.push(bars(true, T.bar)); break;
+    case "line":
+      s.push(ax +
+        mk(`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="#6366f1" stroke-width="2.2"/>`, T.line) +
+        pts.map(p=>mk(`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#4338ca"/>`, T.dot)).join(""));
+      break;
+    case "area":
+      s.push(ax +
+        mk(`<polygon points="${pts.map(p=>p.join(",")).join(" ")} 144,88 24,88" fill="#6366f1" opacity="0.35"/>`, T.area) +
+        mk(`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="#6366f1" stroke-width="2"/>`, T.line));
+      break;
+    case "scatter":
+      s.push(ax + [[30,72],[44,64],[52,66],[66,52],[78,58],[86,40],[104,46],[112,34],[126,30],[140,24],[70,32],[92,26],[118,50],[58,44]]
+        .map(p=>mk(`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#6366f1" opacity="0.7"/>`, T.scatter)).join(""));
+      break;
+    case "bubble":
+      s.push(ax + [[42,66,12],[74,54,8],[104,38,15],[136,30,6],[60,40,5]]
+        .map(p=>mk(`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#6366f1" opacity="0.45" stroke="#6366f1"/>`, T.bubble)).join(""));
+      break;
+    case "hist":
+      s.push(ax + [10,22,44,58,40,24,14]
+        .map((h,i)=>mk(`<rect x="${18 + i * 21}" y="${88 - h}" width="19" height="${h}" fill="#6366f1" opacity="0.7"/>`, T.hist)).join(""));
+      break;
+    case "box":
+      s.push(ax + [0,1,2].map(i=>{const x=42+i*46;
+        return mk(`<rect x="${x}" y="${34+i*3}" width="26" height="${26-i*2}" fill="#eef2ff" stroke="#6366f1"/>`, "箱体 = Q1~Q3（四分位距 IQR）") +
+          mk(`<line x1="${x}" y1="${26+i*3}" x2="${x+26}" y2="${26+i*3}" stroke="#6366f1"/>`, T.box) +
+          mk(`<line x1="${x+13}" y1="${26+i*3}" x2="${x+13}" y2="${34+i*3}" stroke="#6366f1"/>`, T.box) +
+          mk(`<line x1="${x+13}" y1="${60+i}" x2="${x+13}" y2="${72-i*3}" stroke="#6366f1"/>`, T.box);}).join(""));
+      break;
+    case "violin":
+      s.push(ax + [0,1].map(i=>{const x=56+i*58;
+        return mk(`<path d="M${x} 20 C ${x+22} 40, ${x+22} 58, ${x} 78 C ${x-22} 58, ${x-22} 40, ${x} 20 Z" fill="#6366f1" opacity="${0.35+i*0.12}"/>`, T.violin);}).join(""));
+      break;
+    case "heat":
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 9; c++)
+        s.push(mk(`<rect x="${20 + c * 17}" y="${14 + r * 15}" width="15" height="13" fill="#6366f1" opacity="${0.15 + ((r * 9 + c) % 7) * 0.12}"/>`, T.heat));
+      break;
+    case "calendar":
+      for (let c = 0; c < 12; c++) for (let r = 0; r < 5; r++)
+        s.push(mk(`<rect x="${20 + c * 12.5}" y="${20 + r * 13}" width="10" height="11" rx="1.5" fill="#6366f1" opacity="${0.12 + ((c * 5 + r) % 6) * 0.14}"/>`, T.cal));
+      break;
+    case "pie":
+      s.push(mk('<path d="M90 52 L90 14 A38 38 0 0 1 124 66 Z" fill="#6366f1" opacity="0.85"/>', T.pie) +
+        mk('<path d="M90 52 L124 66 A38 38 0 0 1 66 80 Z" fill="#6366f1" opacity="0.55"/>', T.pie) +
+        mk('<path d="M90 52 L66 80 A38 38 0 0 1 90 14 Z" fill="#6366f1" opacity="0.3"/>', T.pie));
+      break;
+    case "treemap":
+      s.push(mk('<rect x="16" y="14" width="94" height="74" fill="#6366f1" opacity="0.75" stroke="#fff"/>', "面积最大的矩形 = 占比最大的节点") +
+        mk('<rect x="112" y="14" width="52" height="46" fill="#6366f1" opacity="0.5" stroke="#fff"/>', T.treemap) +
+        mk('<rect x="112" y="62" width="26" height="26" fill="#6366f1" opacity="0.32" stroke="#fff"/>', T.treemap) +
+        mk('<rect x="140" y="62" width="24" height="26" fill="#6366f1" opacity="0.22" stroke="#fff"/>', T.treemap));
+      break;
+    case "parallel":
+      s.push([0,1,2,3].map(i=>`<line x1="${26+i*42}" y1="14" x2="${26+i*42}" y2="86" stroke="#cbd5e1"/>`).join("") +
+        [[30,60,24,70],[52,36,62,30],[78,70,40,54],[44,52,72,40],[66,28,52,66]]
+          .map(ps=>mk(`<polyline points="${ps.map((p,i)=>(26+i*42)+","+p).join(" ")}" fill="none" stroke="#6366f1" stroke-opacity="0.55" stroke-width="1.6"/>`, T.parallel)).join(""));
+      break;
+    case "contour":
+      s.push('<rect x="18" y="14" width="144" height="72" fill="#f1f5f9"/>' +
+        [0,1,2,3].map(i=>mk(`<ellipse cx="${70+i*4}" cy="${52}" rx="${52-i*12}" ry="${30-i*7}" fill="none" stroke="#6366f1" stroke-width="1.6" opacity="${0.8-i*0.15}"/>`, T.contour)).join(""));
+      break;
+    case "slope": {
+      const x0 = 46, x1 = 134;
+      const pairs = [[30,42],[46,66],[60,48],[74,82],[88,70],[36,26]];
+      s.push(`<line x1="${x0}" y1="16" x2="${x0}" y2="86" stroke="#cbd5e1"/><line x1="${x1}" y1="16" x2="${x1}" y2="86" stroke="#cbd5e1"/>`);
+      pairs.forEach(([a, b]) => {
+        s.push(mk(`<line x1="${x0}" y1="${a}" x2="${x1}" y2="${b}" stroke="#6366f1" stroke-opacity="0.6" stroke-width="1.8"/>`, T.slope) +
+          mk(`<circle cx="${x0}" cy="${a}" r="3" fill="#94a3b8"/>`, "左轴端点 = 变化前的取值") +
+          mk(`<circle cx="${x1}" cy="${b}" r="3" fill="#4338ca"/>`, "右轴端点 = 变化后的取值"));
+      });
+      break;
+    }
+    default:
+      s.push(ax);
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s.join("")}</svg>`;
+}
+
+/* ---------- 缩略图交互：事件委托驱动浮层（复刻 .gal-tip 定位） ---------- */
+let miniTip = null;
+function hideMini() { if (miniTip) miniTip.style.opacity = "0"; }
+function showMini(evt) {
+  const mark = evt.target && evt.target.closest ? evt.target.closest(".mini-mark") : null;
+  const t = mark ? mark.querySelector("title") : null;
+  const text = t ? t.textContent : "";
+  if (!text) { hideMini(); return; }
+  if (miniTip.textContent !== text) miniTip.textContent = text;
+  const w = miniTip.offsetWidth, h = miniTip.offsetHeight;
+  let left = evt.clientX + 14;
+  if (left + w > window.innerWidth - 8) left = evt.clientX - 14 - w;
+  miniTip.style.left = Math.max(8, left) + "px";
+  miniTip.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, evt.clientY + 16)) + "px";
+  miniTip.style.opacity = "1";
+}
+function bindMini(root) {
+  if (!miniTip) {
+    miniTip = document.createElement("div");
+    miniTip.className = "dec-mini-tip";
+    document.body.appendChild(miniTip);
+  }
+  if (root.dataset.miniBound) return;
+  root.dataset.miniBound = "1";
+  // pointermove 覆盖真实鼠标与触控笔；mousemove 兜底合成事件测试
+  root.addEventListener("pointermove", showMini);
+  root.addEventListener("mousemove", showMini);
+  root.addEventListener("mouseover", showMini);
+  root.addEventListener("pointerleave", hideMini);
+  root.addEventListener("mouseleave", hideMini);
+  window.addEventListener("scroll", hideMini, { passive: true });
+}
+
+/* ---------- 状态与渲染 ---------- */
+const answers = { q1: null, q2: null, q3: null };
+
+const panel = document.getElementById("dec-panel");
+const result = document.getElementById("dec-result");
+const bc = document.getElementById("dec-breadcrumb");
+
+QUESTIONS.forEach((q) => {
+  const box = document.createElement("div");
+  box.className = "dec-q";
+  const h = document.createElement("h4");
+  h.textContent = q.title;
+  box.appendChild(h);
+  const opts = document.createElement("div");
+  opts.className = "dec-opts";
+  q.opts.forEach((o) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = o.t;
+    b.addEventListener("click", () => {
+      answers[q.id] = answers[q.id] === o.k ? null : o.k;
+      opts.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b && answers[q.id] === o.k));
+      render();
+    });
+    opts.appendChild(b);
+  });
+  box.appendChild(opts);
+  panel.appendChild(box);
+});
+
+function labelOf(qid, k) {
+  const q = QUESTIONS.find((x) => x.id === qid);
+  const o = q && q.opts.find((x) => x.k === k);
+  return o ? o.t : "";
+}
+
+function render() {
+  hideMini();
+  const picked = Object.values(answers).filter(Boolean);
+  bc.textContent = picked.length
+    ? picked.map((k, i) => labelOf(QUESTIONS[i].id, k)).join("  ›  ")
+    : "请先选择「数据关系」";
+
+  if (!picked.length) {
+    result.innerHTML = '<p class="search-empty">左侧选择后，这里会出现推荐结果。</p>';
+    return;
+  }
+
+  const scored = CHARTS.map((c) => {
+    let score = 0;
+    Object.keys(answers).forEach((qid) => {
+      const ans = answers[qid];
+      if (ans && c.w[qid] && c.w[qid][ans]) score += c.w[qid][ans];
+    });
+    return { c, score };
+  })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  if (!scored.length) {
+    result.innerHTML = '<p class="search-empty">这组条件比较少见，试试调整「变量结构」或「关注重点」。</p>';
+    return;
+  }
+
+  const maxW = picked.length;
+  result.innerHTML =
+    `<p class="viz-hint">按匹配度排序，前 ${scored.length} 个推荐：<span class="dec-mini-hint">🖱 悬停缩略图里的图元，可查看它到底编码了什么</span></p>` +
+    '<div class="dec-rec-list">' +
+    scored
+      .map(({ c, score }) => {
+        const pct = Math.min(100, Math.round((score / (maxW * 3)) * 100));
+        return `<div class="dec-rec">
+          ${preview(c.kind)}
+          <h4>${c.name} <span style="font-size:11px;color:#94a3b8;font-weight:400">${c.en}</span></h4>
+          <p class="dr-why"><b>为什么合适：</b>${c.why}<br><b>匹配度：</b>${pct}%</p>
+          <div class="dr-code">${c.code.replace(/</g, "&lt;")}</div>
+          <p class="dr-why" style="margin-top:10px"><b>常见误用：</b>${c.misuse}</p>
+          <p class="gl-src">对应小节：${c.lesson
+            .map((l) => {
+              const [p, id] = l.split("/#");
+              const ch = p.slice(-1);
+              return `<a href="${l}">第 ${ch} 章 · ${id.replace("ch-", "")}</a>`;
+            })
+            .join("、")}</p>
+        </div>`;
+      })
+      .join("") +
+    "</div>" +
+    '<div class="dec-warn">⚠️ 决策器给的是<b>起点</b>而不是结论：任何图表都要回到「数据关系 → 视觉通道表达力」这一层去判断；必要时先用第 3 章的配色工具校验颜色。</div>';
+
+  /* 缩略图入场动画（CSS transition，prefers-reduced-motion 下自动关闭） */
+  requestAnimationFrame(() => {
+    result.querySelectorAll(".dec-rec").forEach((r) => r.classList.add("dec-mini-in"));
+  });
+}
+render();
+bindMini(result);
+</script>
+</body>
+</html>

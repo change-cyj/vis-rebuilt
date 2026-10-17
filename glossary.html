@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>可视化术语表 · 《可视化导论》</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="i18n.css" />
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <header class="toolpage-header">
+    <a class="back" href="./">← 返回课程门户</a>
+    <h1>📖 可视化术语表</h1>
+    <p>把 5 章课程里出现的中英术语、算法名与经典人物集中成一张可搜索的表；每条都标注它出现在哪一个小节。</p>
+  </header>
+
+  <main class="toolpage-main">
+    <div class="gl-toolbar">
+      <input id="gl-input" type="search" placeholder="搜索术语：例如 Lab / rollup / 螺旋 / ordinal / 色盲 …" autocomplete="off" />
+      <div class="gl-cats" id="gl-cats"></div>
+    </div>
+    <p class="gl-count" id="gl-count"></p>
+    <div class="gl-list" id="gl-list"></div>
+  </main>
+
+<script type="module">
+/* 术语数据：zh 中文名 / en 英文名 / cat 分类 / desc 一句话解释 / src 出处小节 */
+const CATS = ["数据与属性", "流程与映射", "色彩", "低维与统计", "时序", "人物与经典"];
+
+const TERMS = [
+  // ---------------- 数据与属性 ----------------
+  { zh: "DIKW 模型", en: "DIKW Pyramid", cat: "数据与属性", src: "lesson-01/#ch-1-2",
+    desc: "数据（Data）→ 信息（Information）→ 知识（Knowledge）→ 智慧（Wisdom）的四层递进模型，说明“原始记录”到“决策依据”的加工链条。" },
+  { zh: "数据质量四维度", en: "Data quality dimensions", cat: "数据与属性", src: "lesson-01/#ch-1-1",
+    desc: "Wang & Strong (1996) 提出的准确性、完整性、一致性、时效性四个维度，用来判断一份数据能不能拿来做可视化。" },
+  { zh: "合成数据", en: "Synthetic data", cat: "数据与属性", src: "lesson-01/#ch-1-1",
+    desc: "由模型或程序生成、而非真实采集的数据。教学演示常用，但必须显式标注，避免误当成真实分布。" },
+  { zh: "测量尺度", en: "Scales of measurement", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "Stevens (1946) 的四种尺度，决定一个属性可以参与哪些运算，也决定它能映射到哪些视觉通道。" },
+  { zh: "标称尺度", en: "Nominal", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "仅用来区分身份、不能比较大小（性别、省份）。对应的视觉通道：位置、形状、颜色色相。" },
+  { zh: "有序尺度", en: "Ordinal", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "可以排序但相邻差不可比（差、很甜/甜/一般）。对应通道：位置、明度、大小。" },
+  { zh: "等距尺度", en: "Interval", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "差值有意义、但零点任意（摄氏温度、年份）。可做加减，不能做比值。" },
+  { zh: "等比尺度", en: "Ratio", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "有绝对零点（长度、人数、金额）。唯一能做乘除的尺度，位置与长度是它最精确的通道。" },
+  { zh: "视觉通道", en: "Visual channel", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "位置、长度、面积、角度、颜色、纹理等可用于编码数据的视觉变量。" },
+  { zh: "表达力排序", en: "Expressiveness ranking", cat: "数据与属性", src: "lesson-01/#ch-1-3",
+    desc: "Mackinlay (1986) 按“人读取精确度”给通道排序：位置 > 长度 > 角度/斜率 > 面积 > 体积 > 颜色。" },
+  { zh: "视觉编码", en: "Visual encoding", cat: "数据与属性", src: "lesson-02/#ch-2-3",
+    desc: "把数据属性映射为视觉通道的过程，是整门课的核心动作；编码选错，任何美化都救不回来。" },
+
+  // ---------------- 流程与映射 ----------------
+  { zh: "Card 数据流模型", en: "Card's data flow model", cat: "流程与映射", src: "lesson-02/#ch-2-1",
+    desc: "Stuart Card (1999) 提出的可视化三段式：原数据 → 数据表 → 视觉结构 →（渲染成）视图。" },
+  { zh: "数据变换", en: "Data transformation", cat: "流程与映射", src: "lesson-02/#ch-2-2",
+    desc: "从原数据到数据表这一步：筛选、聚合、排序、派生新字段。d3.rollup/group/bin 是主要工具。" },
+  { zh: "聚合", en: "Aggregation", cat: "流程与映射", src: "lesson-02/#ch-2-2",
+    desc: "按某个维度把多行合并成一行（求和、计数、均值）。d3.rollup 的典型用法。" },
+  { zh: "层次数据", en: "Hierarchical data", cat: "流程与映射", src: "lesson-02/#ch-2-2",
+    desc: "带父子关系的数据（学院→班级→学生）。用 d3.hierarchy 建树后再布局。" },
+  { zh: "Reingold-Tilford 算法", en: "Reingold-Tilford algorithm", cat: "流程与映射", src: "lesson-02/#ch-2-4",
+    desc: "经典的树节点布局算法，保证同层节点不重叠且整体对称，d3.tree 即其实现。" },
+  { zh: "树形列表", en: "Tree list", cat: "流程与映射", src: "lesson-02/#ch-2-2",
+    desc: "用缩进 + 展开箭头表达层级，而不是画树；在数据量大时比树图更实用。" },
+  { zh: "数据连接", en: "Data join", cat: "流程与映射", src: "lesson-01/#ch-1-5",
+    desc: "D3 的核心思想：把数据数组“拼接”到 DOM 选择集上，数据变化即视图变化。" },
+  { zh: "进入 / 更新 / 退出", en: "Enter / Update / Exit", cat: "流程与映射", src: "lesson-01/#ch-1-5",
+    desc: "数据连接的三态：多出来的数据（enter）新建元素，对上的（update）更新，少掉的（exit）移除。" },
+  { zh: "选择集", en: "Selection", cat: "流程与映射", src: "lesson-01/#ch-1-5",
+    desc: "D3 对一组 DOM 元素的封装（d3.select / selectAll），支持链式批改属性。" },
+  { zh: "事件委托", en: "Event delegation", cat: "流程与映射", src: "lesson-02/#ch-2-4",
+    desc: "把监听器绑在父元素上、靠事件冒泡识别来源，避免为上万个节点各绑一个监听器。" },
+
+  // ---------------- 色彩 ----------------
+  { zh: "颜色空间", en: "Color space", cat: "色彩", src: "lesson-03/#ch-3-1",
+    desc: "描述颜色的坐标系统。RGB 面向设备，HSV/HSL 面向人调色，CIE Lab 面向“感知均匀”。" },
+  { zh: "RGB 色彩模式", en: "RGB / sRGB", cat: "色彩", src: "lesson-03/#ch-3-1",
+    desc: "加色法三原色。屏幕原生格式，但通道差值与人眼感受不成比例。" },
+  { zh: "HSV / HSL", en: "HSV / HSL", cat: "色彩", src: "lesson-03/#ch-3-1",
+    desc: "把颜色拆成色相 + 饱和度 + 明度，适合按“感觉”批量生成配色。" },
+  { zh: "CIE Lab", en: "CIE Lab", cat: "色彩", src: "lesson-03/#ch-3-3",
+    desc: "以人眼感知为基准的颜色空间，两点欧氏距离 ≈ 人眼感觉到的色差，是评判配色“均匀性”的标尺。" },
+  { zh: "感知均匀", en: "Perceptually uniform", cat: "色彩", src: "lesson-03/#ch-3-2",
+    desc: "配色中数值的等量变化在视觉上也是等量变化（viridis 就是典型）。彩虹色系恰恰违反这一点。" },
+  { zh: "色域", en: "Gamut", cat: "色彩", src: "lesson-03/#ch-3-3",
+    desc: "一个颜色空间或设备能表示的全部颜色范围。Lab 下画 a-b 平面即可看到边界形状。" },
+  { zh: "色差 ΔE", en: "Color difference (ΔE)", cat: "色彩", src: "lesson-03/#ch-3-3",
+    desc: "两个颜色在 Lab 空间中的距离，常用于判断配色是否“辨识得开”。" },
+  { zh: "顺序型 colormap", en: "Sequential colormap", cat: "色彩", src: "lesson-03/#ch-3-2",
+    desc: "单向前进（浅→深），用于表达有大小顺序的数值，如密度、温度。" },
+  { zh: "发散型 colormap", en: "Diverging colormap", cat: "色彩", src: "lesson-03/#ch-3-2",
+    desc: "两端相反、中间中性（蓝—白—红），用于表达“相对某个基准”的正负偏离。" },
+  { zh: "分类型 colormap", en: "Categorical / qualitative", cat: "色彩", src: "lesson-03/#ch-3-2",
+    desc: "类别之间没有大小关系，只需要“互相区分开”，色相差异大、明度接近即可。" },
+  { zh: "色轮", en: "Color wheel", cat: "色彩", src: "lesson-03/#ch-3-4",
+    desc: "把色相按角度排列的圆盘，是所有配色规则（邻近、互补、三角）的几何基础。" },
+  { zh: "邻近色方案", en: "Analogous", cat: "色彩", src: "lesson-03/#ch-3-4",
+    desc: "色轮上相邻的 2~3 个色相，整体和谐、适合表达同一维度的连续变化。" },
+  { zh: "互补色方案", en: "Complementary", cat: "色彩", src: "lesson-03/#ch-3-4",
+    desc: "色轮相隔 180° 的两色，对比最强，适合强调对比但对色盲不友好。" },
+  { zh: "三角配色", en: "Triadic", cat: "色彩", src: "lesson-03/#ch-3-4",
+    desc: "色轮上等距的三色，视觉丰富且均衡，适合三个并列类别。" },
+  { zh: "彩虹色系", en: "Rainbow colormap", cat: "色彩", src: "lesson-03/#ch-3-6",
+    desc: "反例：色相循环破坏感知均匀性，读者会看到不存在的“台阶”与高低顺序。" },
+  { zh: "色觉障碍", en: "CVD (Color Vision Deficiency)", cat: "色彩", src: "lesson-03/#ch-3-8",
+    desc: "约 8% 男性、0.5% 女性存在红绿色觉障碍。发布配色前应用模拟器自检。" },
+  { zh: "Wong 配色", en: "Wong palette", cat: "色彩", src: "lesson-03/#ch-3-5",
+    desc: "Bang Wong 为色盲友好的 8 色方案，Nature Methods 推荐，可直接用于论文配图。" },
+  { zh: "viridis", en: "viridis", cat: "色彩", src: "lesson-03/#ch-3-5",
+    desc: "感知均匀且色盲安全的顺序型 colormap，在灰度打印下仍保持亮度单调。" },
+
+  // ---------------- 低维与统计 ----------------
+  { zh: "坐标变换", en: "Coordinate transformation", cat: "低维与统计", src: "lesson-04/#ch-4-2",
+    desc: "数据空间 → 绘图空间 → 屏幕空间的三层映射，d3.scale 就是这一层的实现。" },
+  { zh: "标度 / scale", en: "Scale", cat: "低维与统计", src: "lesson-04/#ch-4-2",
+    desc: "把数据域（domain）映射到可视范围（range）的函数；linear / band / sqrt / log / time 各有适用场景。" },
+  { zh: "对数坐标", en: "Log scale", cat: "低维与统计", src: "lesson-04/#ch-4-2",
+    desc: "跨数量级数据（1 ~ 1e6）的压缩利器，但会放大低位的视觉波动，需谨慎解读。" },
+  { zh: "归一化", en: "Normalization", cat: "低维与统计", src: "lesson-04/#ch-4-1",
+    desc: "把不同量纲的变量压到同一区间（如 0~1），是多样对比与多变量图的前提。" },
+  { zh: "曲线拟合", en: "Curve fitting", cat: "低维与统计", src: "lesson-04/#ch-4-3",
+    desc: "在散点/时间序列上叠加一条趋势线，帮助读者读到“趋势”而非“噪声”。" },
+  { zh: "LOESS", en: "LOESS (locally weighted regression)", cat: "低维与统计", src: "lesson-04/#ch-4-3",
+    desc: "局部加权回归平滑，不假设全局函数形式，适合形状复杂的数据。" },
+  { zh: "回归", en: "Regression", cat: "低维与统计", src: "lesson-04/#ch-4-3",
+    desc: "假定函数形式（直线/多项式）后最小化误差，给出可解释的参数。" },
+  { zh: "45° 黄金角", en: "Banking to 45°", cat: "低维与统计", src: "lesson-04/#ch-4-4",
+    desc: "Cleveland 等人（1984）发现：调整长宽比让平均线段倾角接近 45° 时，人判断斜率最准确。" },
+  { zh: "等值线", en: "Contour line", cat: "低维与统计", src: "lesson-04/#ch-4-5",
+    desc: "把标量场中数值相同的点连成线（等温线、等高线），用线的走向替代色块读数。" },
+  { zh: "Marching Squares", en: "Marching Squares", cat: "低维与统计", src: "lesson-04/#ch-4-5",
+    desc: "从网格标量场提取等值线的经典算法：每个单元按 4 角与阈值的比较分 16 种情况插值。" },
+  { zh: "标量场", en: "Scalar field", cat: "低维与统计", src: "lesson-04/#ch-4-5",
+    desc: "平面上每个位置都有一个数值（海拔、温度、密度），等值线与热力图是它的两种常见画法。" },
+
+  // ---------------- 时序 ----------------
+  { zh: "时间尺度", en: "Time scale (linear / cyclic)", cat: "时序", src: "lesson-05/#ch-5-1",
+    desc: "时间是线性前进还是周期循环，直接决定该用折线图还是螺旋/日历布局。" },
+  { zh: "时间粒度", en: "Granularity", cat: "时序", src: "lesson-05/#ch-5-1",
+    desc: "数据记录的最小时间单位（秒/小时/天）。粒度与可视化的长宽比要匹配。" },
+  { zh: "折线图", en: "Line chart", cat: "时序", src: "lesson-05/#ch-5-2",
+    desc: "时间序列的默认图表；斜率编码变化率，最擅长表达趋势。" },
+  { zh: "日历热图", en: "Calendar heatmap", cat: "时序", src: "lesson-05/#ch-5-3",
+    desc: "用“星期 × 周数”的网格 + 颜色编码每日数值，一屏容纳一年。" },
+  { zh: "van Wijk 布局", en: "van Wijk calendar layout", cat: "时序", src: "lesson-05/#ch-5-3",
+    desc: "van Wijk & van Selow (1999) 提出的日历式时间布局，兼顾周期感与密度。" },
+  { zh: "阿基米德螺旋", en: "Archimedean spiral", cat: "时序", src: "lesson-05/#ch-5-4",
+    desc: "半径随时间线性增长的螺旋。把循环时间映射到极坐标，可同时看到周期与长期趋势。" },
+  { zh: "极坐标", en: "Polar coordinates", cat: "时序", src: "lesson-05/#ch-5-4",
+    desc: "用角度 + 半径定位；周期性数据（小时、月份）用它比直角坐标更自然。" },
+  { zh: "小倍数", en: "Small multiples", cat: "时序", src: "lesson-05/#ch-5-3",
+    desc: "同一结构重复多张（按类别分面），便于横向比较而不用重复解释图例。" },
+  { zh: "故事线", en: "Storyline", cat: "时序", src: "lesson-05/#ch-5-5",
+    desc: "用事件与实体的交错时间线讲述叙事，代表案例是《侏罗纪公园》的故事图。" },
+  { zh: "叙事可视化", en: "Narrative visualization", cat: "时序", src: "lesson-05/#ch-5-5",
+    desc: "在数据探索之上加入叙事结构（顺序、强调、注释），引导读者得出结论。" },
+
+  // ---------------- 人物与经典 ----------------
+  { zh: "Jacques Bertin", en: "Jacques Bertin", cat: "人物与经典", src: "lesson-01/#ch-1-3",
+    desc: "《Semiology of Graphics》(1967) 作者，最早系统提出“视觉变量”理论。" },
+  { zh: "Jock Mackinlay", en: "Jock Mackinlay", cat: "人物与经典", src: "lesson-01/#ch-1-3",
+    desc: "1986 年给出视觉通道表达力的排序，是自动化图表设计的理论起点。" },
+  { zh: "Stanley S. Stevens", en: "Stanley S. Stevens", cat: "人物与经典", src: "lesson-01/#ch-1-3",
+    desc: "1946 年提出四种测量尺度，至今仍是判断“数据适合什么通道”的依据。" },
+  { zh: "William Cleveland", en: "William S. Cleveland", cat: "人物与经典", src: "lesson-04/#ch-4-4",
+    desc: "1984 年提出 45° 倾角（banking）理论，奠定了统计图形的实证研究传统。" },
+  { zh: "Stuart Card", en: "Stuart K. Card", cat: "人物与经典", src: "lesson-02/#ch-2-1",
+    desc: "1999 年提出信息可视化的数据流参考模型（原数据→数据表→视觉结构→视图）。" },
+  { zh: "Mike Bostock", en: "Mike Bostock", cat: "人物与经典", src: "lesson-01/#ch-1-5",
+    desc: "D3.js 作者，把“数据连接（data join）”带进了主流 Web 可视化实践。" },
+  { zh: "Leland Wilkinson", en: "Leland Wilkinson", cat: "人物与经典", src: "lesson-02/#ch-2-1",
+    desc: "《The Grammar of Graphics》作者，用“语法”描述图形，是 ggplot2 与 Vega 的思想源头。" },
+  { zh: "Edward Tufte", en: "Edward Tufte", cat: "人物与经典", src: "lesson-03/#ch-3-6",
+    desc: "提出“数据墨水比（data-ink ratio）”，反对一切不承载信息的装饰。" },
+  { zh: "Bang Wong", en: "Bang Wong", cat: "人物与经典", src: "lesson-03/#ch-3-5",
+    desc: "Nature Methods 专栏作者，给出色盲友好的经典 8 色科研配色。" },
+  { zh: "Paul Tol", en: "Paul Tol", cat: "人物与经典", src: "lesson-03/#ch-3-5",
+    desc: "荷兰科学家，维护一整套经色盲与打印检验的配色方案（bright/muted/sunset 等）。" },
+];
+
+/* =====================================================================
+ * 术语内联可视化 —— 纯 SVG 字符串生成，零依赖（不依赖 D3 / CDN）
+ * 目的：让抽象名词也有一个看得见的形状，帮助建立直觉。
+ * ===================================================================== */
+const svgWrap = (vb, inner) =>
+  `<svg class="gl-viz-svg" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+
+const VIZ = {
+  /* ① DIKW 金字塔 */
+  dikw() {
+    const L = [
+      ["数据", "Data", "#e0e7ff", "#3730a3"],
+      ["信息", "Information", "#a5b4fc", "#312e81"],
+      ["知识", "Knowledge", "#4f46e5", "#ffffff"],
+      ["智慧", "Wisdom", "#1e1b4b", "#ffffff"],
+    ];
+    const hw = f => 20 + f * 132;
+    let g = "";
+    L.forEach(([zh, en, c, tc], i) => {
+      const f1 = i / 4, f2 = (i + 1) / 4, y1 = 8 + i * 24, y2 = y1 + 24;
+      g += `<polygon points="${160 - hw(f1)},${y1} ${160 + hw(f1)},${y1} ${160 + hw(f2)},${y2} ${160 - hw(f2)},${y2}" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
+      g += `<text x="160" y="${y1 + 12}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${tc}">${zh}</text>`;
+      g += `<text x="160" y="${y1 + 20}" text-anchor="middle" font-size="6.5" fill="${tc}" opacity="0.85">${en}</text>`;
+    });
+    g += `<line x1="308" y1="104" x2="308" y2="14" stroke="#94a3b8" stroke-width="1.2"/>`;
+    g += `<polygon points="308,6 303,15 313,15" fill="#94a3b8"/>`;
+    g += `<text x="299" y="60" text-anchor="end" font-size="7" fill="#94a3b8" transform="rotate(-90 299 60)">加工深度</text>`;
+    return svgWrap("0 0 320 112", g);
+  },
+
+  /* ② 四种测量尺度 */
+  scales() {
+    const rows = [
+      ["标称 Nominal", "只区分身份，不能比较"],
+      ["有序 Ordinal", "可以排序，差值不可比"],
+      ["等距 Interval", "差值有意义，零点任意"],
+      ["等比 Ratio", "有绝对零点，可乘除"],
+    ];
+    const ry = i => 18 + i * 26;
+    let g = "";
+    rows.forEach(([n, s], i) => {
+      g += `<text x="4" y="${ry(i)}" font-size="8.5" font-weight="600" fill="#334155">${n}</text>`;
+      g += `<text x="4" y="${ry(i) + 10}" font-size="6.5" fill="#94a3b8">${s}</text>`;
+    });
+    // 标称：三个等大色点
+    [[0, "#2563eb"], [1, "#db2777"], [2, "#0d9488"]].forEach(([k, c]) => {
+      g += `<circle cx="${110 + k * 40}" cy="${ry(0) - 4}" r="6" fill="${c}"/>`;
+    });
+    // 有序：递增大小
+    [5, 8, 11].forEach((r, k) => {
+      g += `<circle cx="${110 + k * 40}" cy="${ry(1) - 4}" r="${r}" fill="#7c3aed" opacity="0.75"/>`;
+    });
+    g += `<path d="M270 ${ry(1) - 4} h22" stroke="#94a3b8" stroke-width="1.1"/><polygon points="296,${ry(1) - 8} 296,${ry(1)} 302,${ry(1) - 4}" fill="#94a3b8"/>`;
+    // 等距 / 等比：刻度轴
+    [2, 3].forEach(i => {
+      g += `<line x1="100" y1="${ry(i) - 4}" x2="300" y2="${ry(i) - 4}" stroke="#cbd5e1"/>`;
+      [0, 1, 2, 3].forEach(k => {
+        g += `<line x1="${100 + k * 66}" y1="${ry(i) - 8}" x2="${100 + k * 66}" y2="${ry(i)}" stroke="#64748b"/>`;
+        const lab = i === 2 ? [10, 20, 30, 40][k] : [0, 10, 20, 30][k];
+        const bold = i === 3 && k === 0;
+        g += `<text x="${100 + k * 66}" y="${ry(i) + 10}" text-anchor="middle" font-size="7.5" font-weight="${bold ? 700 : 400}" fill="${bold ? "#dc2626" : "#64748b"}">${lab}</text>`;
+      });
+    });
+    return svgWrap("0 0 320 124", g);
+  },
+
+  /* ③ 视觉通道表达力排序（Mackinlay） */
+  channels() {
+    const arr = [
+      ["位置 Position", 210, "最精确"],
+      ["长度 Length", 182, "精确"],
+      ["角度 · 斜率", 152, "较精确"],
+      ["面积 Area", 122, "中等"],
+      ["体积 Volume", 90, "较弱"],
+      ["颜色 Color", 56, "最弱"],
+    ];
+    let g = "";
+    arr.forEach(([n, w, tag], i) => {
+      const y = 8 + i * 19;
+      g += `<rect x="100" y="${y}" width="${w}" height="13" rx="3" fill="#6366f1" opacity="${0.95 - i * 0.09}"/>`;
+      g += `<text x="94" y="${y + 10}" text-anchor="end" font-size="8" fill="#334155">${n}</text>`;
+      g += `<text x="${100 + w + 5}" y="${y + 10}" font-size="7.5" fill="#94a3b8">${tag}</text>`;
+    });
+    g += `<text x="100" y="126" font-size="7.5" fill="#94a3b8">↑ 越靠上，读者读数越准确</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ④-1 顺序型 colormap */
+  seq() {
+    const stops = ["#f7fbff", "#c6dbef", "#6baed6", "#2171b5", "#08306b"];
+    let g = "";
+    stops.forEach((c, i) => { g += `<rect x="${56 + i * 42}" y="22" width="42" height="34" fill="${c}" stroke="#fff"/>`; });
+    g += `<text x="56" y="16" font-size="7.5" fill="#94a3b8">低 · 小</text>`;
+    g += `<text x="266" y="16" text-anchor="end" font-size="7.5" fill="#94a3b8">高 · 大</text>`;
+    g += `<line x1="56" y1="66" x2="256" y2="66" stroke="#94a3b8" stroke-width="1.1"/><polygon points="266,66 256,62 256,70" fill="#94a3b8"/>`;
+    g += `<text x="160" y="84" text-anchor="middle" font-size="8" fill="#334155">单向递进：用于有大小顺序的数值（温度、密度）</text>`;
+    return svgWrap("0 0 320 94", g);
+  },
+
+  /* ④-2 发散型 colormap */
+  div() {
+    const stops = ["#2166ac", "#67a9cf", "#d1e5f0", "#f7f7f7", "#fddbc7", "#ef8a62", "#b2182b"];
+    let g = "";
+    stops.forEach((c, i) => { g += `<rect x="${46 + i * 33}" y="22" width="33" height="34" fill="${c}" stroke="#fff"/>`; });
+    g += `<line x1="161" y1="18" x2="161" y2="60" stroke="#334155" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+    g += `<text x="161" y="14" text-anchor="middle" font-size="7.5" fill="#334155">基准 0</text>`;
+    g += `<text x="46" y="70" font-size="7.5" fill="#2166ac">← 负向偏离</text>`;
+    g += `<text x="277" y="70" text-anchor="end" font-size="7.5" fill="#b2182b">正向偏离 →</text>`;
+    g += `<text x="160" y="86" text-anchor="middle" font-size="8" fill="#334155">两端相反、中间中性：用于相对基准的正负偏离</text>`;
+    return svgWrap("0 0 320 96", g);
+  },
+
+  /* ④-3 分类型 colormap */
+  cat() {
+    const cs = ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948", "#b07aa1", "#ff9da7"];
+    let g = "";
+    cs.forEach((c, i) => { g += `<rect x="${34 + i * 32}" y="18" width="32" height="30" rx="3" fill="${c}"/>`; });
+    g += `<text x="160" y="66" text-anchor="middle" font-size="8" fill="#334155">色相差异大、明暗接近：类别之间只需“互相区分”</text>`;
+    g += `<text x="160" y="80" text-anchor="middle" font-size="7" fill="#94a3b8">（Tableau 10 经典定性配色）</text>`;
+    return svgWrap("0 0 320 88", g);
+  },
+
+  /* ⑤ CIE Lab 色域边界 */
+  labgamut() {
+    const cx = 160, cy = 60;
+    const P = [[95, 0], [80, 55], [45, 82], [0, 95], [-48, 80], [-78, 50], [-95, 0], [-80, -42], [-50, -72], [0, -85], [58, -68], [88, -18]];
+    const pt = ([a, b]) => `${(cx + a * 1.15).toFixed(1)},${(cy - b * 0.46).toFixed(1)}`;
+    let g = `<polygon points="${P.map(pt).join(" ")}" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+    g += `<circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="#cbd5e1" stroke-dasharray="2 2"/>`;
+    g += `<line x1="${cx - 118}" y1="${cy}" x2="${cx + 118}" y2="${cy}" stroke="#cbd5e1"/>`;
+    g += `<line x1="${cx}" y1="${cy - 56}" x2="${cx}" y2="${cy + 56}" stroke="#cbd5e1"/>`;
+    g += `<text x="${cx + 122}" y="${cy + 12}" font-size="8" fill="#64748b">a*（绿 ← → 红）</text>`;
+    g += `<text x="${cx + 6}" y="${cy - 58}" font-size="8" fill="#64748b">b*（蓝 ↓ 黄 ↑）</text>`;
+    [[80, 62, "#e11d48", "红"], [-72, 78, "#16a34a", "绿"], [72, -98, "#2563eb", "蓝"]].forEach(([a, b, c, n]) => {
+      const [x, y] = pt([a, b]).split(",").map(Number);
+      g += `<circle cx="${x}" cy="${y}" r="4.5" fill="${c}" stroke="#fff" stroke-width="1"/>`;
+      g += `<text x="${x + 7}" y="${y + 3}" font-size="7.5" fill="${c}">${n}</text>`;
+    });
+    return svgWrap("0 0 320 122", g + `<text x="160" y="118" text-anchor="middle" font-size="7" fill="#94a3b8">dashed = sRGB 色域边界（示意）· 虚线圆 = 中性灰附近</text>`);
+  },
+
+  /* ⑥ 色轮与配色规则 */
+  wheel() {
+    const cx = 160, cy = 62, R = 48;
+    let g = "";
+    for (let i = 0; i < 36; i++) {
+      const a0 = (i * 10 - 90) * Math.PI / 180, a1 = ((i + 1) * 10 - 90) * Math.PI / 180;
+      g += `<path d="M${cx},${cy} L${(cx + R * Math.cos(a0)).toFixed(1)},${(cy + R * Math.sin(a0)).toFixed(1)} A${R},${R} 0 0 1 ${(cx + R * Math.cos(a1)).toFixed(1)},${(cy + R * Math.sin(a1)).toFixed(1)} Z" fill="hsl(${i * 10},72%,58%)" stroke="#fff" stroke-width="0.5"/>`;
+    }
+    const on = (h) => {
+      const a = (h - 90) * Math.PI / 180;
+      return [cx + R * Math.cos(a), cy + R * Math.sin(a)];
+    };
+    // 互补：0° 与 180°
+    const c1 = on(0), c2 = on(180);
+    g += `<line x1="${c1[0]}" y1="${c1[1]}" x2="${c2[0]}" y2="${c2[1]}" stroke="#1e1b4b" stroke-width="1.1" stroke-dasharray="3 2"/>`;
+    // 三等分
+    [0, 120, 240].forEach(h => { const p = on(h); g += `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#1e1b4b" stroke="#fff" stroke-width="1"/>`; });
+    // 邻近
+    [340, 20].forEach(h => { const p = on(h); g += `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#fff" stroke="#1e1b4b" stroke-width="1.2"/>`; });
+    g += `<text x="160" y="122" text-anchor="middle" font-size="7.5" fill="#64748b">■ 三角（等距 120°）○ 邻近（相隔 20°）虚线 互补（相隔 180°）</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ⑦ 等值线（标量场） */
+  contour() {
+    let g = `<rect x="18" y="8" width="284" height="102" rx="8" fill="#fbfdff" stroke="#e2e8f0"/>`;
+    [[134, 52, 10], [106, 41, 20], [76, 29, 30], [42, 16, 40]].forEach(([rx, ry, v]) => {
+      g += `<ellipse cx="160" cy="58" rx="${rx}" ry="${ry}" fill="none" stroke="#3b82f6" stroke-width="1.3" opacity="0.8"/>`;
+      g += `<text x="160" y="${58 - ry - 3}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#1e40af">${v}</text>`;
+    });
+    g += `<circle cx="160" cy="58" r="3" fill="#1e40af"/>`;
+    g += `<text x="168" y="56" font-size="7" fill="#1e40af">峰</text>`;
+    g += `<text x="160" y="104" text-anchor="middle" font-size="7" fill="#94a3b8">同一数值的点连成线 → 用线的走向替代色块读数</text>`;
+    return svgWrap("0 0 320 116", g);
+  },
+
+  /* ⑧ Marching Squares 单元插值 */
+  marching() {
+    const M = [[0.9, 0.8, 0.4, 0.2], [0.85, 0.7, 0.35, 0.15], [0.5, 0.45, 0.25, 0.1], [0.3, 0.2, 0.12, 0.05]];
+    const TH = 0.5, cs = 46, x0 = 74, y0 = 12;
+    let g = "";
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const avg = (M[i][j] + M[i][j + 1] + M[i + 1][j] + M[i + 1][j + 1]) / 4;
+      g += `<rect x="${x0 + j * cs}" y="${y0 + i * cs}" width="${cs}" height="${cs}" fill="${avg >= TH ? "#dbeafe" : "#f8fafc"}" stroke="#e2e8f0"/>`;
+    }
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      g += `<text x="${x0 + j * cs + 2}" y="${y0 + i * cs + 9}" font-size="6" fill="#94a3b8">${M[i][j]}</text>`;
+    }
+    const ip = (v1, v2) => (TH - v1) / (v2 - v1);
+    const E = {
+      T: (i, j) => [x0 + j * cs + ip(M[i][j], M[i][j + 1]) * cs, y0 + i * cs],
+      B: (i, j) => [x0 + j * cs + ip(M[i + 1][j], M[i + 1][j + 1]) * cs, y0 + (i + 1) * cs],
+      L: (i, j) => [x0 + j * cs, y0 + i * cs + ip(M[i][j], M[i + 1][j]) * cs],
+      R: (i, j) => [x0 + (j + 1) * cs, y0 + i * cs + ip(M[i][j + 1], M[i + 1][j + 1]) * cs],
+    };
+    const CASE = { 1: [["L", "T"]], 2: [["T", "R"]], 3: [["L", "R"]], 4: [["R", "B"]], 5: [["L", "T"], ["R", "B"]], 6: [["T", "B"]], 7: [["L", "B"]], 8: [["B", "L"]], 9: [["T", "B"]], 10: [["T", "R"], ["B", "L"]], 11: [["R", "B"]], 12: [["L", "R"]], 13: [["T", "R"]], 14: [["L", "T"]] };
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      const idx = (M[i][j] >= TH ? 1 : 0) | (M[i][j + 1] >= TH ? 2 : 0) | (M[i + 1][j + 1] >= TH ? 4 : 0) | (M[i + 1][j] >= TH ? 8 : 0);
+      (CASE[idx] || []).forEach(([e1, e2]) => {
+        const [p1, p2] = [E[e1](i, j), E[e2](i, j)];
+        g += `<line x1="${p1[0].toFixed(1)}" y1="${p1[1].toFixed(1)}" x2="${p2[0].toFixed(1)}" y2="${p2[1].toFixed(1)}" stroke="#1e40af" stroke-width="2" stroke-linecap="round"/>`;
+      });
+    }
+    g += `<text x="${x0}" y="158" font-size="7" fill="#94a3b8">阈值 = 0.5：蓝块 = 高于阈值，深线 = 等值线</text>`;
+    return svgWrap("0 0 320 164", g);
+  },
+
+  /* ⑨ 阿基米德螺旋 */
+  spiral() {
+    const cx = 160, cy = 56, a = 6, b = 4;
+    let pts = [];
+    for (let t = 0; t <= Math.PI * 4; t += 0.08) {
+      const r = a + b * t;
+      pts.push([(cx + r * Math.cos(t)).toFixed(1), (cy + r * Math.sin(t)).toFixed(1)]);
+    }
+    let g = `<path d="M${pts.map(p => p.join(",")).join(" L")}" fill="none" stroke="#ea580c" stroke-width="1.6"/>`;
+    for (let k = 0; k <= 8; k++) {
+      const t = k * Math.PI / 2, r = a + b * t;
+      g += `<circle cx="${(cx + r * Math.cos(t)).toFixed(1)}" cy="${(cy + r * Math.sin(t)).toFixed(1)}" r="2.6" fill="#1e1b4b"/>`;
+    }
+    g += `<text x="160" y="122" text-anchor="middle" font-size="7.5" fill="#64748b">半径 r = a + bθ　→　等角度间隔 = 等半径增量（黑点为每 90°）</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ⑩ 45° 黄金角 */
+  bank45() {
+    const S = [[0, 1], [1, 2.2], [2, 1.6], [3, 3.1], [4, 2.8], [5, 4]];
+    const mk = (ox, w, label, note, color) => {
+      const X = v => ox + 10 + (v / 5) * (w - 20);
+      const Y = v => 78 - (v / 4) * 66;
+      let s = `<rect x="${ox}" y="8" width="${w}" height="76" rx="6" fill="#fff" stroke="#e2e8f0"/>`;
+      s += `<polyline points="${S.map(([x, y]) => X(x).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
+      S.forEach(([x, y]) => { s += `<circle cx="${X(x).toFixed(1)}" cy="${Y(y).toFixed(1)}" r="2.4" fill="${color}"/>`; });
+      s += `<text x="${ox + w / 2}" y="98" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">${label}</text>`;
+      s += `<text x="${ox + w / 2}" y="110" text-anchor="middle" font-size="7" fill="#94a3b8">${note}</text>`;
+      return s;
+    };
+    let g = mk(8, 74, "长宽比过窄", "斜率被夸大 ≈ 58°", "#dc2626");
+    g += mk(104, 104, "≈ 45° 黄金角", "判断最准", "#16a34a");
+    g += `<text x="228" y="40" font-size="7.5" fill="#64748b">同一组数据，</text>`;
+    g += `<text x="228" y="52" font-size="7.5" fill="#64748b">只是长宽比</text>`;
+    g += `<text x="228" y="64" font-size="7.5" fill="#64748b">不同，斜率</text>`;
+    g += `<text x="228" y="76" font-size="7.5" fill="#64748b">的“观感”就变了</text>`;
+    return svgWrap("0 0 320 116", g);
+  },
+
+  /* ⑪ 对数坐标 */
+  logscale() {
+    let g = "";
+    g += `<text x="8" y="18" font-size="8" font-weight="600" fill="#334155">线性轴</text>`;
+    g += `<line x1="64" y1="14" x2="300" y2="14" stroke="#cbd5e1"/>`;
+    [1, 10, 100, 1000].forEach(v => {
+      const x = 64 + (v / 1000) * 236;
+      g += `<line x1="${x.toFixed(1)}" y1="8" x2="${x.toFixed(1)}" y2="20" stroke="#64748b"/>`;
+      g += `<text x="${x.toFixed(1)}" y="32" text-anchor="middle" font-size="7" fill="#64748b">${v}</text>`;
+    });
+    g += `<text x="8" y="46" font-size="7" fill="#dc2626">1 ~ 100 挤成一团</text>`;
+    g += `<text x="8" y="78" font-size="8" font-weight="600" fill="#334155">对数轴</text>`;
+    g += `<line x1="64" y1="74" x2="300" y2="74" stroke="#cbd5e1"/>`;
+    [1, 10, 100, 1000].forEach((v, k) => {
+      const x = 64 + k * 78.6;
+      g += `<line x1="${x.toFixed(1)}" y1="68" x2="${x.toFixed(1)}" y2="80" stroke="#64748b"/>`;
+      g += `<text x="${x.toFixed(1)}" y="92" text-anchor="middle" font-size="7" fill="#64748b">${v}</text>`;
+    });
+    g += `<text x="8" y="106" font-size="7" fill="#16a34a">等距展开，跨数量级可比</text>`;
+    return svgWrap("0 0 320 112", g);
+  },
+
+  /* ⑫ 小倍数 */
+  smallmult() {
+    const S = [[[0, 2], [1, 3], [2, 2.4], [3, 3.6], [4, 3.2]], [[0, 3.6], [1, 3.1], [2, 2.2], [3, 1.6], [4, 1.2]], [[0, 1.4], [1, 2.0], [2, 3.1], [3, 3.4], [4, 3.8]], [[0, 2.4], [1, 2.0], [2, 2.6], [3, 2.2], [4, 2.9]]];
+    let g = "";
+    S.forEach((ser, i) => {
+      const ox = 8 + i * 78;
+      g += `<rect x="${ox}" y="16" width="70" height="56" rx="5" fill="#fff" stroke="#e2e8f0"/>`;
+      const X = v => ox + 8 + (v / 4) * 54, Y = v => 66 - (v / 4) * 44;
+      g += `<polyline points="${ser.map(([x, y]) => X(x).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}" fill="none" stroke="#4f46e5" stroke-width="1.5"/>`;
+      g += `<text x="${ox + 35}" y="11" text-anchor="middle" font-size="7.5" fill="#64748b">${["班级 A", "班级 B", "班级 C", "班级 D"][i]}</text>`;
+    });
+    g += `<text x="160" y="88" text-anchor="middle" font-size="7.5" fill="#64748b">同一种图重复分面：轴、图例只需解释一次，便于横向比较</text>`;
+    return svgWrap("0 0 320 96", g);
+  },
+
+  /* ⑬ 日历热图 */
+  calheat() {
+    const blue = ["#f1f5f9", "#dbeafe", "#93c5fd", "#3b82f6", "#1e3a8a"];
+    let g = "";
+    for (let r = 0; r < 7; r++) {
+      g += `<text x="44" y="${18 + r * 12 + 8}" text-anchor="end" font-size="6.5" fill="#94a3b8">${["日", "一", "二", "三", "四", "五", "六"][r]}</text>`;
+      for (let c = 0; c < 13; c++) {
+        const n = Math.abs(Math.sin(r * 12.9898 + c * 78.233) * 43758.5453) % 1;
+        const lv = r === 2 && c > 4 && c < 9 ? 4 : Math.floor(n * 3);
+        g += `<rect x="${50 + c * 20}" y="${18 + r * 12}" width="19" height="11" rx="2" fill="${blue[lv]}"/>`;
+      }
+    }
+    g += `<text x="50" y="12" font-size="7" fill="#94a3b8">列 = 周 →</text>`;
+    g += `<text x="160" y="106" text-anchor="middle" font-size="7.5" fill="#64748b">年 = 一屏 · 行 = 星期 · 颜色 = 当日数值（深蓝 = 值大）</text>`;
+    return svgWrap("0 0 320 112", g);
+  },
+
+  /* ⑭ 树布局 */
+  rtree() {
+    const N = [[160, 22, "根"], [82, 62, "A"], [238, 62, "B"], [40, 100, "A1"], [124, 100, "A2"], [196, 100, "B1"], [280, 100, "B2"]];
+    const L = [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]];
+    let g = "";
+    L.forEach(([a, b]) => {
+      g += `<path d="M${N[a][0]},${N[a][1] + 14} C${N[a][0]},${(N[a][1] + N[b][1]) / 2} ${N[b][0]},${(N[a][1] + N[b][1]) / 2} ${N[b][0]},${N[b][1] - 14}" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>`;
+    });
+    N.forEach(([x, y, t], i) => {
+      g += `<rect x="${x - 18}" y="${y - 11}" width="36" height="22" rx="5" fill="${i === 0 ? "#1e1b4b" : "#e0e7ff"}" stroke="${i === 0 ? "#1e1b4b" : "#6366f1"}"/>`;
+      g += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="7.5" fill="${i === 0 ? "#fff" : "#3730a3"}">${t}</text>`;
+    });
+    g += `<text x="160" y="122" text-anchor="middle" font-size="7.5" fill="#64748b">同层节点不重叠、整体左右对称 —— Reingold-Tilford</text>`;
+    return svgWrap("0 0 320 130", g);
+  },
+
+  /* ⑮ 极坐标 */
+  polar() {
+    const cx = 108, cy = 58, R = 40;
+    let g = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#e2e8f0"/>`;
+    const put = (deg, r, c, name) => {
+      const a = (deg - 90) * Math.PI / 180;
+      const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+      g += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${c}" stroke-width="1.3" stroke-dasharray="3 2"/>`;
+      g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${c}"/>`;
+      g += `<text x="${(x + 7).toFixed(1)}" y="${(y + 3).toFixed(1)}" font-size="7.5" fill="${c}">${name}</text>`;
+      return [x, y];
+    };
+    const p = put(38, R, "#2563eb", "1 月");
+    g += `<path d="M${cx},${cy - 16} A16,16 0 0 1 ${(cx + 16 * Math.cos((38 - 90) * Math.PI / 180)).toFixed(1)},${(cy + 16 * Math.sin((38 - 90) * Math.PI / 180)).toFixed(1)}" fill="none" stroke="#64748b" stroke-width="1"/>`;
+    put(142, R * 0.78, "#db2777", "7 月");
+    g += `<text x="${cx}" y="${cy + 3}" font-size="7" fill="#94a3b8">角 θ</text>`;
+    g += `<text x="${(cx + 26).toFixed(1)}" y="${cy - 20}" font-size="7" fill="#64748b">半径 r</text>`;
+    g += `<text x="196" y="42" font-size="7.5" fill="#64748b">周期性数据（小时、</text>`;
+    g += `<text x="196" y="54" font-size="7.5" fill="#64748b">月份）用角度 + 半径</text>`;
+    g += `<text x="196" y="66" font-size="7.5" fill="#64748b">比直角坐标更自然：</text>`;
+    g += `<text x="196" y="78" font-size="7.5" fill="#64748b">1 月与次年 1 月重合</text>`;
+    return svgWrap("0 0 320 116", g);
+  },
+
+  /* ⑯ 彩虹色系（反例） */
+  rainbow() {
+    let g = "";
+    for (let i = 0; i < 24; i++) {
+      g += `<rect x="${24 + i * 11.5}" y="18" width="11.5" height="28" fill="hsl(${i * 15},85%,52%)" stroke="#fff" stroke-width="0.4"/>`;
+    }
+    g += `<text x="24" y="60" font-size="7.5" fill="#334155">数值 0</text>`;
+    g += `<text x="300" y="60" text-anchor="end" font-size="7.5" fill="#334155">数值 100</text>`;
+    g += `<text x="160" y="80" text-anchor="middle" font-size="8" fill="#dc2626">反例：明度非单调、色相循环 → 读者看到“假台阶”与虚假高低</text>`;
+    g += `<text x="160" y="94" text-anchor="middle" font-size="7" fill="#94a3b8">仅适合……几乎没有适合的场景</text>`;
+    return svgWrap("0 0 320 100", g);
+  },
+
+  /* ⑰ viridis（正例） */
+  viridis() {
+    const cs = ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"];
+    const gray = ["#151515", "#515151", "#797979", "#ababab", "#dedede"];
+    let g = "";
+    cs.forEach((c, i) => {
+      g += `<rect x="${40 + i * 48}" y="18" width="48" height="26" fill="${c}" stroke="#fff"/>`;
+      g += `<rect x="${40 + i * 48}" y="52" width="48" height="26" fill="${gray[i]}" stroke="#fff"/>`;
+    });
+    g += `<text x="36" y="36" text-anchor="end" font-size="7.5" fill="#334155">彩色</text>`;
+    g += `<text x="36" y="70" text-anchor="end" font-size="7.5" fill="#334155">灰度</text>`;
+    g += `<text x="160" y="92" text-anchor="middle" font-size="8" fill="#16a34a">正例：感知均匀 + 灰度仍单调 → 黑白打印也读得出大小</text>`;
+    return svgWrap("0 0 320 100", g);
+  },
+
+  /* ================= 新增 16 项（v2）：覆盖此前无图的术语 ================= */
+
+  /* ⑱ 数据质量四维度 */
+  dataqual() {
+    const rows = [
+      ["准确性 Accuracy", 92, 0],
+      ["完整性 Completeness", 86, 0],
+      ["一致性 Consistency", 42, 1],
+      ["时效性 Timeliness", 74, 0],
+    ];
+    let g = "";
+    rows.forEach(([n, v, bad], i) => {
+      const y = 10 + i * 24, bw = (v / 100) * 138;
+      g += `<text x="4" y="${y + 11}" font-size="7.5" fill="#334155">${n}</text>`;
+      g += `<rect x="152" y="${y + 2}" width="138" height="12" rx="6" fill="#f1f5f9"/>`;
+      g += `<rect x="152" y="${y + 2}" width="${bw.toFixed(0)}" height="12" rx="6" fill="${bad ? "#dc2626" : "#6366f1"}"/>`;
+      g += `<text x="296" y="${y + 12}" font-size="7.5" fill="${bad ? "#dc2626" : "#64748b"}">${v}%</text>`;
+    });
+    g += `<text x="160" y="112" text-anchor="middle" font-size="7.5" fill="#94a3b8">任一维度不达标，整份数据即不合格</text>`;
+    return svgWrap("0 0 320 120", g);
+  },
+
+  /* ⑲ 合成数据 */
+  synthetic() {
+    let s = 7;
+    const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    let g = "";
+    g += `<rect x="6" y="8" width="148" height="96" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+    g += `<rect x="166" y="8" width="148" height="96" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+    g += `<text x="80" y="22" text-anchor="middle" font-size="8" font-weight="600" fill="#334155">真实数据</text>`;
+    g += `<text x="240" y="22" text-anchor="middle" font-size="8" font-weight="600" fill="#334155">合成数据</text>`;
+    for (let i = 0; i < 26; i++) {
+      g += `<circle cx="${(20 + rnd() * 120).toFixed(1)}" cy="${(34 + rnd() * 58).toFixed(1)}" r="3" fill="#6366f1" opacity="0.72"/>`;
+    }
+    for (let a = 0; a < 5; a++)
+      for (let b = 0; b < 4; b++)
+        g += `<circle cx="${186 + a * 26}" cy="${38 + b * 16}" r="3" fill="#4338ca" opacity="0.72"/>`;
+    g += `<text x="160" y="118" text-anchor="middle" font-size="7.5" fill="#64748b">合成数据由模型生成：分布过于规整，缺少真实噪声</text>`;
+    return svgWrap("0 0 320 126", g);
+  },
+
+  /* ⑳ 视觉通道（同一数据，四种编码） */
+  vchannel() {
+    const vals = [3, 1, 2];
+    const ramp = ["#e0e7ff", "#a5b4fc", "#6366f1"];
+    let g = "";
+    const panel = (x, y, t) => {
+      g += `<rect x="${x}" y="${y}" width="148" height="52" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+      g += `<text x="${x + 8}" y="${y + 14}" font-size="7.5" font-weight="600" fill="#4338ca">${t}</text>`;
+    };
+    panel(6, 8, "位置 Position（最精确）");
+    g += `<line x1="20" y1="46" x2="142" y2="46" stroke="#cbd5e1"/>`;
+    vals.forEach((v) => {
+      const x = 36 + (v - 1) * 40;
+      g += `<circle cx="${x}" cy="46" r="4" fill="#6366f1"/>`;
+    });
+    panel(166, 8, "长度 Length");
+    vals.forEach((v, i) => {
+      const y = 28 + i * 9;
+      g += `<rect x="246" y="${y}" width="${v * 22}" height="6.5" rx="3" fill="#6366f1"/>`;
+    });
+    g += `<line x1="246" y1="26" x2="246" y2="56" stroke="#cbd5e1"/>`;
+    panel(6, 68, "面积 Area");
+    vals.forEach((v, i) => {
+      const x = 42 + i * 42;
+      g += `<circle cx="${x}" cy="96" r="${4 + v * 3}" fill="#6366f1" opacity="0.8"/>`;
+    });
+    panel(166, 68, "颜色 Color（最弱）");
+    vals.forEach((v, i) => {
+      const x = 200 + i * 40;
+      g += `<rect x="${x}" y="84" width="22" height="22" rx="3" fill="${ramp[v - 1]}"/>`;
+    });
+    return svgWrap("0 0 320 128", g);
+  },
+
+  /* ㉑ Card 数据流模型 */
+  cardflow() {
+    const st = [
+      ["原数据", "Raw data", "#e0e7ff", "#312e81"],
+      ["数据表", "Data tables", "#c7d2fe", "#312e81"],
+      ["视觉结构", "Visual structures", "#a5b4fc", "#312e81"],
+      ["视图", "Views", "#6366f1", "#ffffff"],
+    ];
+    let g = "";
+    st.forEach(([zh, en, bg, tc], i) => {
+      const x = 6 + i * 80, y = 38, w = 58, h = 36;
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${bg}" stroke="#fff"/>`;
+      g += `<text x="${x + w / 2}" y="${y + 16}" text-anchor="middle" font-size="8.5" font-weight="600" fill="${tc}">${zh}</text>`;
+      g += `<text x="${x + w / 2}" y="${y + 27}" text-anchor="middle" font-size="5.6" fill="${tc}">${en}</text>`;
+      if (i < 3)
+        g += `<path d="M${x + w + 3} ${y + h / 2} h10" stroke="#94a3b8" stroke-width="1.2"/><polygon points="${x + w + 13},${y + h / 2 - 4} ${x + w + 13},${y + h / 2 + 4} ${x + w + 20},${y + h / 2}" fill="#94a3b8"/>`;
+    });
+    g += `<text x="160" y="94" text-anchor="middle" font-size="7.5" fill="#64748b">Card 三阶段模型：原始数据 → 数据表 → 视觉结构 → 视图</text>`;
+    return svgWrap("0 0 320 104", g);
+  },
+
+  /* ㉒ 聚合 */
+  rollup() {
+    let g = "";
+    const rows = [["张三", "1 班"], ["李四", "1 班"], ["王五", "1 班"], ["赵六", "2 班"], ["钱七", "2 班"]];
+    rows.forEach(([n, c], i) => {
+      const y = 16 + i * 17;
+      g += `<rect x="6" y="${y}" width="104" height="14" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>`;
+      g += `<text x="14" y="${y + 10}" font-size="7.5" fill="#475569">${n}</text>`;
+      g += `<text x="104" y="${y + 10}" text-anchor="end" font-size="7.5" fill="#94a3b8">${c}</text>`;
+    });
+    g += `<path d="M116 52 h14" stroke="#94a3b8" stroke-width="1.4"/><polygon points="130,46 130,58 140,52" fill="#94a3b8"/>`;
+    g += `<rect x="146" y="16" width="168" height="36" rx="6" fill="#6366f1"/>`;
+    g += `<text x="230" y="33" text-anchor="middle" font-size="8.5" font-weight="600" fill="#fff">1 班 × 3</text>`;
+    g += `<text x="230" y="45" text-anchor="middle" font-size="6.5" fill="#e0e7ff">rollup → 计数</text>`;
+    g += `<rect x="146" y="58" width="168" height="26" rx="6" fill="#a5b4fc"/>`;
+    g += `<text x="230" y="75" text-anchor="middle" font-size="8.5" font-weight="600" fill="#312e81">2 班 × 2</text>`;
+    g += `<text x="160" y="104" text-anchor="middle" font-size="7.5" fill="#64748b">明细行按分类聚合成一行（d3.rollup）</text>`;
+    return svgWrap("0 0 320 114", g);
+  },
+
+  /* ㉓ 数据连接 */
+  datajoin() {
+    const data = ["A", "B", "C", "D"];
+    const dom = ["A", "B", "C", "E"];
+    let g = "";
+    g += `<text x="60" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">数据 data</text>`;
+    g += `<text x="256" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">DOM 元素</text>`;
+    data.forEach((d, i) => {
+      const y = 24 + i * 22;
+      g += `<rect x="24" y="${y}" width="72" height="16" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>`;
+      g += `<text x="60" y="${y + 11}" text-anchor="middle" font-size="8" fill="#475569">${d}</text>`;
+    });
+    dom.forEach((d, i) => {
+      const y = 24 + i * 22, isEnter = d === "E";
+      g += `<rect x="220" y="${y}" width="72" height="16" rx="4" fill="${isEnter ? "#dcfce7" : "#f1f5f9"}" stroke="${isEnter ? "#16a34a" : "#e2e8f0"}"${isEnter ? ' stroke-dasharray="3 2"' : ""}/>`;
+      g += `<text x="256" y="${y + 11}" text-anchor="middle" font-size="7.5" fill="${isEnter ? "#166534" : "#475569"}">${isEnter ? "E · 进入" : d}</text>`;
+    });
+    [0, 1, 2].forEach((k) => {
+      const y = 32 + k * 22;
+      g += `<line x1="96" y1="${y}" x2="220" y2="${y}" stroke="#6366f1" stroke-width="1.2" opacity="0.65"/>`;
+    });
+    const yExit = 32 + 3 * 22;
+    g += `<line x1="96" y1="${yExit}" x2="150" y2="${yExit}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+    g += `<text x="152" y="${yExit + 3}" font-size="7" fill="#94a3b8">D · 退出</text>`;
+    g += `<text x="160" y="124" text-anchor="middle" font-size="7.5" fill="#64748b">进入 enter / 更新 update / 退出 exit（d3 data join）</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ㉔ 事件委托 */
+  delegate() {
+    let g = "";
+    g += `<rect x="104" y="8" width="112" height="26" rx="6" fill="#6366f1"/>`;
+    g += `<text x="160" y="25" text-anchor="middle" font-size="8.2" font-weight="600" fill="#fff">父容器 · 1 个监听器</text>`;
+    [70, 160, 250].forEach((x) => {
+      g += `<line x1="160" y1="34" x2="${x}" y2="72" stroke="#94a3b8" stroke-width="1.1" stroke-dasharray="3 2"/>`;
+      g += `<circle cx="${x}" cy="84" r="12" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.3"/>`;
+      g += `<text x="${x}" y="87" text-anchor="middle" font-size="7" fill="#3730a3">子</text>`;
+    });
+    g += `<text x="160" y="116" text-anchor="middle" font-size="7.5" fill="#64748b">事件冒泡到父节点统一处理，无需逐个绑定</text>`;
+    return svgWrap("0 0 320 124", g);
+  },
+
+  /* ㉕ 颜色空间 */
+  colorspace() {
+    let g = "";
+    const cap = (x, t) => {
+      g += `<text x="${x}" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">${t}</text>`;
+    };
+    g += `<rect x="6" y="20" width="98" height="80" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+    g += `<rect x="112" y="20" width="98" height="80" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+    g += `<rect x="218" y="20" width="98" height="80" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>`;
+    cap(55, "RGB · 立方");
+    cap(161, "HSV · 柱");
+    cap(267, "CIE Lab · 平面");
+    const ox = 30, oy = 40, s = 28, d = 16;
+    g += `<rect x="${ox}" y="${oy}" width="${s}" height="${s}" fill="none" stroke="#6366f1" stroke-width="1.4"/>`;
+    g += `<rect x="${ox + d}" y="${oy - d}" width="${s}" height="${s}" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>`;
+    [[0, 0], [s, 0], [s, s], [0, s]].forEach(([a, b]) => {
+      g += `<line x1="${ox + a}" y1="${oy + b}" x2="${ox + a + d}" y2="${oy + b - d}" stroke="#c7d2fe" stroke-width="1"/>`;
+    });
+    g += `<text x="${ox + s + 5}" y="${oy + s + 3}" font-size="6" fill="#dc2626">R</text>`;
+    g += `<text x="${ox - 8}" y="${oy - d + 6}" font-size="6" fill="#16a34a">G</text>`;
+    g += `<text x="${ox + 3}" y="${oy + s + 12}" font-size="6" fill="#2563eb">B</text>`;
+    g += `<circle cx="161" cy="60" r="26" fill="none" stroke="#e2e8f0"/>`;
+    for (let i = 0; i < 12; i++) {
+      const a = (i * 30 * Math.PI) / 180;
+      g += `<line x1="161" y1="60" x2="${(161 + 26 * Math.cos(a)).toFixed(1)}" y2="${(60 + 26 * Math.sin(a)).toFixed(1)}" stroke="hsl(${i * 30},80%,52%)" stroke-width="2.2"/>`;
+    }
+    for (let i = 0; i < 6; i++)
+      g += `<rect x="196" y="${34 + i * 9}" width="10" height="9" fill="hsl(210,60%,${92 - i * 15}%)"/>`;
+    g += `<line x1="228" y1="60" x2="306" y2="60" stroke="#cbd5e1"/><text x="308" y="63" font-size="6" fill="#64748b">a*</text>`;
+    g += `<line x1="267" y1="30" x2="267" y2="92" stroke="#cbd5e1"/><text x="272" y="28" font-size="6" fill="#64748b">b*</text>`;
+    g += `<ellipse cx="267" cy="60" rx="30" ry="26" fill="#a5b4fc" opacity="0.35"/>`;
+    g += `<circle cx="267" cy="60" r="2" fill="#4338ca"/>`;
+    g += `<text x="160" y="116" text-anchor="middle" font-size="7.5" fill="#64748b">RGB 适合显示，HSV 适合调色，Lab 适合比较“看起来的差异”</text>`;
+    return svgWrap("0 0 320 124", g);
+  },
+
+  /* ㉖ RGB 色彩模式 */
+  rgbadd() {
+    let g = "";
+    const R = 28, cx = 120, cy = 56;
+    g += `<circle cx="${cx}" cy="${cy - 15}" r="${R}" fill="hsl(0,85%,55%)" style="mix-blend-mode:screen"/>`;
+    g += `<circle cx="${cx - 24}" cy="${cy + 17}" r="${R}" fill="hsl(120,70%,45%)" style="mix-blend-mode:screen"/>`;
+    g += `<circle cx="${cx + 24}" cy="${cy + 17}" r="${R}" fill="hsl(230,85%,58%)" style="mix-blend-mode:screen"/>`;
+    g += `<text x="${cx}" y="${cy - 20}" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">R</text>`;
+    g += `<text x="${cx - 30}" y="${cy + 22}" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">G</text>`;
+    g += `<text x="${cx + 30}" y="${cy + 22}" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">B</text>`;
+    g += `<text x="200" y="44" font-size="7.5" fill="#334155">加色法：三盏灯叠加</text>`;
+    g += `<text x="200" y="58" font-size="7.5" fill="#334155">红 + 绿 = 黄</text>`;
+    g += `<text x="200" y="72" font-size="7.5" fill="#334155">三色全亮 = 白</text>`;
+    g += `<text x="200" y="86" font-size="7.5" fill="#94a3b8">（屏幕正是如此发光）</text>`;
+    return svgWrap("0 0 320 112", g);
+  },
+
+  /* ㉗ 感知均匀 */
+  perceptuni() {
+    const uni = ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"];
+    let g = "";
+    g += `<text x="6" y="14" font-size="7.5" font-weight="600" fill="#334155">感知均匀（viridis）</text>`;
+    uni.forEach((c, i) => {
+      g += `<rect x="${20 + i * 56}" y="20" width="56" height="22" fill="${c}" stroke="#fff"/>`;
+    });
+    g += `<text x="6" y="60" font-size="7.5" font-weight="600" fill="#334155">步进不均（直觉配色）</text>`;
+    for (let i = 0; i < 5; i++)
+      g += `<rect x="${20 + i * 56}" y="66" width="56" height="22" fill="hsl(210,70%,${92 - i * 22}%)" stroke="#fff"/>`;
+    g += `<text x="160" y="104" text-anchor="middle" font-size="7.5" fill="#64748b">等量的数值步进，在右侧看起来“疏密不均”</text>`;
+    return svgWrap("0 0 320 112", g);
+  },
+
+  /* ㉘ 色觉障碍 */
+  cvd() {
+    let g = "";
+    const normal = ["hsl(0,80%,50%)", "hsl(120,55%,38%)", "hsl(0,80%,50%)", "hsl(120,55%,38%)"];
+    const sim = ["hsl(35,45%,45%)", "hsl(50,45%,45%)", "hsl(35,45%,45%)", "hsl(50,45%,45%)"];
+    g += `<text x="70" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">正常视觉</text>`;
+    g += `<text x="250" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">红绿色盲模拟</text>`;
+    normal.forEach((c, i) => {
+      g += `<circle cx="70" cy="${30 + i * 20}" r="8" fill="${c}"/>`;
+      g += `<circle cx="250" cy="${30 + i * 20}" r="8" fill="${sim[i]}"/>`;
+    });
+    g += `<text x="160" y="118" text-anchor="middle" font-size="7.5" fill="#64748b">红 / 绿在模拟后几乎无法区分 → 应改用明度或形状区分</text>`;
+    return svgWrap("0 0 320 126", g);
+  },
+
+  /* ㉙ 标度 / scale */
+  scalemap() {
+    const dom = [0, 10, 20, 30];
+    let g = "";
+    g += `<text x="4" y="24" font-size="6.5" fill="#94a3b8">domain</text>`;
+    g += `<text x="4" y="104" font-size="6.5" fill="#94a3b8">range</text>`;
+    dom.forEach((v, i) => {
+      const x = 48 + i * 60, y2 = 100;
+      g += `<circle cx="${x}" cy="20" r="4" fill="#6366f1"/><text x="${x}" y="12" text-anchor="middle" font-size="7" fill="#334155">${v}</text>`;
+      g += `<circle cx="${x}" cy="${y2}" r="4" fill="#4338ca"/><text x="${x}" y="${y2 + 14}" text-anchor="middle" font-size="7" fill="#334155">${v * 12}</text>`;
+      g += `<line x1="${x}" y1="24" x2="${x}" y2="${y2 - 4}" stroke="#cbd5e1" stroke-dasharray="3 2"/>`;
+    });
+    g += `<text x="160" y="124" text-anchor="middle" font-size="7.5" fill="#64748b">d3.scaleLinear：数据域 → 屏幕值域 的一一映射</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ㉚ 归一化 */
+  norm() {
+    const raw = [320, 45, 180, 12];
+    let g = "";
+    g += `<text x="80" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">原始（量纲不一）</text>`;
+    g += `<text x="245" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">归一化到 0–1</text>`;
+    raw.forEach((v, i) => {
+      const h = (v / 320) * 70;
+      g += `<rect x="${22 + i * 30}" y="${94 - h}" width="20" height="${h}" rx="2" fill="#6366f1"/>`;
+      g += `<text x="${32 + i * 30}" y="${110}" text-anchor="middle" font-size="6.5" fill="#94a3b8">${v}</text>`;
+    });
+    const mx = Math.max(...raw), mn = Math.min(...raw);
+    raw.forEach((v, i) => {
+      const nv = (v - mn) / (mx - mn), h = nv * 70;
+      g += `<rect x="${186 + i * 30}" y="${94 - h}" width="20" height="${h}" rx="2" fill="#4338ca"/>`;
+      g += `<text x="${196 + i * 30}" y="${110}" text-anchor="middle" font-size="6.5" fill="#94a3b8">${nv.toFixed(2)}</text>`;
+    });
+    g += `<text x="160" y="124" text-anchor="middle" font-size="7.5" fill="#64748b">压到同一区间后，不同量纲的指标才能公平比较</text>`;
+    return svgWrap("0 0 320 132", g);
+  },
+
+  /* ㉛ 曲线拟合 */
+  curvefit() {
+    let s = 3;
+    const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    let g = "";
+    g += `<line x1="30" y1="100" x2="300" y2="100" stroke="#cbd5e1"/>`;
+    g += `<line x1="30" y1="16" x2="30" y2="100" stroke="#cbd5e1"/>`;
+    for (let i = 0; i < 30; i++) {
+      const x = 36 + i * 8.6, base = 96 - i * 2.4, y = base + (rnd() - 0.5) * 22;
+      g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4" fill="#6366f1" opacity="0.7"/>`;
+    }
+    g += `<line x1="36" y1="95" x2="292" y2="33" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="5 3"/>`;
+    g += `<text x="284" y="28" font-size="7" fill="#dc2626">拟合线</text>`;
+    g += `<text x="160" y="118" text-anchor="middle" font-size="7.5" fill="#64748b">用一条光滑曲线概括散点趋势，同时保留残差信息</text>`;
+    return svgWrap("0 0 320 126", g);
+  },
+
+  /* ㉜ 时间尺度 */
+  timescale() {
+    let g = "";
+    const mn = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+    g += `<text x="80" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">线性（直线轴）</text>`;
+    g += `<line x1="20" y1="60" x2="140" y2="60" stroke="#cbd5e1"/>`;
+    mn.forEach((m, i) => {
+      const x = 24 + i * 10.2;
+      g += `<line x1="${x.toFixed(1)}" y1="56" x2="${x.toFixed(1)}" y2="64" stroke="#94a3b8"/>`;
+    });
+    g += `<text x="20" y="80" font-size="6.5" fill="#64748b">1 月 —— 12 月</text>`;
+    g += `<text x="245" y="14" text-anchor="middle" font-size="7.5" font-weight="600" fill="#334155">循环（圆环轴）</text>`;
+    const cx = 245, cy = 62, R = 34;
+    g += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#e2e8f0"/>`;
+    mn.forEach((m, i) => {
+      const a = (i * 30 * Math.PI) / 180 - Math.PI / 2;
+      g += `<circle cx="${(cx + R * Math.cos(a)).toFixed(1)}" cy="${(cy + R * Math.sin(a)).toFixed(1)}" r="2.6" fill="#6366f1"/>`;
+    });
+    g += `<circle cx="${cx}" cy="${cy}" r="3" fill="#4338ca"/>`;
+    g += `<text x="160" y="122" text-anchor="middle" font-size="7.5" fill="#64748b">线性轴强调增长，圆环轴强调周期；同一份数据的两种读法</text>`;
+    return svgWrap("0 0 320 130", g);
+  },
+
+  /* ㉝ van Wijk 布局 */
+  vanwijk() {
+    let g = "";
+    const days = [31, 28, 31, 30];
+    const names = ["1 月", "2 月", "3 月", "4 月"];
+    const bw = 74, x0 = 8, y0 = 22;
+    days.forEach((d, m) => {
+      const x = x0 + m * (bw + 4);
+      g += `<text x="${x + bw / 2}" y="${y0 - 6}" text-anchor="middle" font-size="7" fill="#334155">${names[m]}</text>`;
+      g += `<rect x="${x}" y="${y0}" width="${bw}" height="${bw}" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>`;
+      for (let k = 0; k < d; k++) {
+        const col = Math.floor(k / 7), row = k % 7;
+        g += `<rect x="${(x + 4 + col * 9.6).toFixed(1)}" y="${(y0 + 6 + row * 9.6).toFixed(1)}" width="8.4" height="8.4" rx="1.6" fill="#6366f1" opacity="${(0.5 + (col % 3) * 0.16).toFixed(2)}"/>`;
+      }
+    });
+    g += `<text x="160" y="118" text-anchor="middle" font-size="7.5" fill="#64748b">月为块、日为格：四个月同构排列，全年 12 个月依此类推</text>`;
+    return svgWrap("0 0 320 128", g);
+  },
+};
+
+/* 开发期自检：新增键若与旧键重名会被静默覆盖，此处显式提示 */
+if (new Set(Object.keys(VIZ)).size !== Object.keys(VIZ).length) {
+  console.warn("[glossary] VIZ 存在重复键，请检查");
+}
+
+/* 术语 → 可视化 的映射（挂在 render 里） */
+const VIZ_TERMS = {
+  "DIKW 模型": { k: "dikw", cap: "加工深度：数据 → 信息 → 知识 → 智慧" },
+  "测量尺度": { k: "scales", cap: "四种尺度允许的运算逐级变多，能映射的通道也随之变精确" },
+  "表达力排序": { k: "channels", cap: "Mackinlay (1986)：通道按“读数精确度”排序" },
+  "顺序型 colormap": { k: "seq", cap: "浅 → 深，方向单一" },
+  "发散型 colormap": { k: "div", cap: "蓝 — 白 — 红，中间为基准" },
+  "分类型 colormap": { k: "cat", cap: "类别之间只需彼此区分" },
+  "CIE Lab": { k: "labgamut", cap: "在 a*–b* 平面上看 sRGB 色域的形状" },
+  "色轮": { k: "wheel", cap: "邻近 / 互补 / 三角：所有配色规则的几何来源" },
+  "等值线": { k: "contour", cap: "等值线是标量场的“等高线”读法" },
+  "Marching Squares": { k: "marching", cap: "每个单元按 4 角与阈值比较，插值出线段" },
+  "阿基米德螺旋": { k: "spiral", cap: "半径随角度线性增长" },
+  "45° 黄金角": { k: "bank45", cap: "调长宽比，让平均斜率贴近 45°" },
+  "对数坐标": { k: "logscale", cap: "把跨数量级的数据“拉平”" },
+  "小倍数": { k: "smallmult", cap: "同一结构重复分面，便于并排比较" },
+  "日历热图": { k: "calheat", cap: "把一年压进一屏网格" },
+  "Reingold-Tilford 算法": { k: "rtree", cap: "同层不重叠、左右对称" },
+  "极坐标": { k: "polar", cap: "角度 + 半径，天然适合周期数据" },
+  "彩虹色系": { k: "rainbow", cap: "为什么它常常是错的" },
+  "viridis": { k: "viridis", cap: "感知均匀 + 色盲友好" },
+  /* --- 新增 16 项（v2） --- */
+  "数据质量四维度": { k: "dataqual", cap: "准确性 / 完整性 / 一致性 / 时效性，任一不达标即不合格" },
+  "合成数据": { k: "synthetic", cap: "由模型生成的“假”数据，用于教学与测试" },
+  "视觉通道": { k: "vchannel", cap: "同一组数据，换一个通道编码，可读性就不同" },
+  "Card 数据流模型": { k: "cardflow", cap: "原数据 → 数据表 → 视觉结构 → 视图" },
+  "聚合": { k: "rollup", cap: "明细行按分类收拢成一行" },
+  "数据连接": { k: "datajoin", cap: "数据数组与 DOM 元素按序绑定（enter / update / exit）" },
+  "事件委托": { k: "delegate", cap: "父节点统一监听，靠事件冒泡处理子元素" },
+  "颜色空间": { k: "colorspace", cap: "RGB / HSV / Lab：描述颜色的三套坐标系" },
+  "RGB 色彩模式": { k: "rgbadd", cap: "红绿蓝加色混合出屏幕上的所有颜色" },
+  "感知均匀": { k: "perceptuni", cap: "等量的数值变化，看起来也是等量变化" },
+  "色觉障碍": { k: "cvd", cap: "约 8% 男性有红绿色觉障碍，配色必须考虑" },
+  "标度 / scale": { k: "scalemap", cap: "把数据域线性映射到屏幕值域" },
+  "归一化": { k: "norm", cap: "把不同量纲的指标压到同一区间" },
+  "曲线拟合": { k: "curvefit", cap: "用一条光滑曲线概括散点趋势" },
+  "时间尺度": { k: "timescale", cap: "线性 vs 循环：时间轴的两种选择" },
+  "van Wijk 布局": { k: "vanwijk", cap: "月为块、日为格，把一年压进一屏" },
+};
+
+const listEl = document.getElementById("gl-list");
+const inputEl = document.getElementById("gl-input");
+const catsEl = document.getElementById("gl-cats");
+const countEl = document.getElementById("gl-count");
+let activeCat = "全部";
+
+const catBtn = (name) => {
+  const b = document.createElement("button");
+  b.textContent = name;
+  b.dataset.cat = name;
+  if (name === activeCat) b.classList.add("active");
+  b.addEventListener("click", () => {
+    activeCat = name;
+    catsEl.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+    render();
+  });
+  return b;
+};
+catsEl.appendChild(catBtn("全部"));
+CATS.forEach((c) => catsEl.appendChild(catBtn(c)));
+
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const hl = (text, q) =>
+  q ? esc(text).replace(new RegExp("(" + escRe(q) + ")", "gi"), "<mark>$1</mark>") : esc(text);
+
+function render() {
+  const q = inputEl.value.trim();
+  const ql = q.toLowerCase();
+  const rows = TERMS.filter((t) => {
+    if (activeCat !== "全部" && t.cat !== activeCat) return false;
+    if (!q) return true;
+    return (
+      t.zh.toLowerCase().includes(ql) ||
+      t.en.toLowerCase().includes(ql) ||
+      t.desc.toLowerCase().includes(ql)
+    );
+  });
+
+  countEl.textContent = `共 ${TERMS.length} 条术语，当前显示 ${rows.length} 条${q ? `（关键词「${q}」）` : ""}。`;
+
+  if (!rows.length) {
+    listEl.innerHTML = '<p class="search-empty">没有匹配的术语，试试英文原名或更短的关键词。</p>';
+    return;
+  }
+  listEl.innerHTML = rows
+    .map((t) => {
+      const [p, id] = t.src.split("/#");
+      const vz = VIZ_TERMS[t.zh];
+      const vizHtml = vz && VIZ[vz.k]
+        ? `<div class="gl-viz">${VIZ[vz.k]()}<p class="gl-viz-cap">${esc(vz.cap)}</p></div>`
+        : "";
+      return `<div class="gl-item${vz ? " has-viz" : ""}">
+        <h3>${hl(t.zh, q)}</h3>
+        <p class="gl-en">${hl(t.en, q)} · ${t.cat}</p>
+        <p>${hl(t.desc, q)}</p>
+        ${vizHtml}
+        <p class="gl-src">出处：<a href="${t.src}">${p} · ${id}</a></p>
+      </div>`;
+    })
+    .join("");
+}
+
+inputEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

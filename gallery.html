@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>可视化画廊 · 《可视化导论》</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="i18n.css" />
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <header class="toolpage-header">
+    <a class="back" href="./">← 返回课程门户</a>
+    <h1>🖼 可视化画廊</h1>
+    <p>用课程自带的真实数据集，把<b>同一份数据</b>画出 <b>15 张可交互图表</b>（其中还包含 2 份“故意写错”的数据做对照）。鼠标移到图元上都会显示具体数值。</p>
+  </header>
+
+  <main class="toolpage-main">
+    <p class="gal-lead">
+      数据来源全部是本课自带的 <code>data/</code> 与 <code>supplementary/</code> 目录，浏览器直接 <code>fetch</code> 加载，离线可用。
+      每张图下方标注了它对应的课程小节 —— 想深挖某一种编码，点进去即可。
+    </p>
+
+    <!-- ==================== A · 新生数据 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">A · 新生数据 <span class="gal-ds">newstudent.csv · 80 行 × 8 列</span></h2>
+      <p class="gal-lead">一份“带类别的多变量表”。同一张表，用长度、面积、位置分别编码，读出来的信息完全不同。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card" data-chart="bar">
+          <figcaption>
+            <h3>① 柱状图 · 各班人数</h3>
+            <p class="gal-note">类别 → <b>长度</b>。人眼读数最精确的通道，适合比较大小与排序。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-02/#ch-2-3">2.3 视觉映射</a></p>
+        </figure>
+
+        <figure class="gal-card" data-chart="hist">
+          <figcaption>
+            <h3>② 直方图 · 年龄分布</h3>
+            <p class="gal-note">等距尺度 → 分箱 → 频数。看的是<b>分布形状</b>（集中、偏斜、双峰），不是单个值。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-01/#ch-1-3">1.3 数据属性</a></p>
+        </figure>
+
+        <figure class="gal-card" data-chart="box">
+          <figcaption>
+            <h3>③ 箱线图 · 各班级年龄</h3>
+            <p class="gal-note">用五数概括（中位数 / 四分位 / 极值）压缩一组分布，一次比较多个类别。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-01/#ch-1-4">1.4 数据变换</a></p>
+        </figure>
+
+        <figure class="gal-card" data-chart="tree">
+          <figcaption>
+            <h3>④ 树图 · 性别 → 班级</h3>
+            <p class="gal-note">层次数据 → <code>d3.hierarchy</code> → <code>d3.treemap</code>。用<b>面积</b>编码嵌套结构。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-02/#ch-2-2">2.2 数据变换</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================== B · Crime 数据 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">B · 犯罪统计（美国 50 州）<span class="gal-ds">crime.csv · 50 行 × 12 列</span></h2>
+      <p class="gal-lead">经典的“多变量宽表”。它最能说明<a href="lesson-04/">第 4 章</a>里那句话：数据空间 → 坐标空间 → 屏幕空间，三层职责要分清。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card gal-wide" data-chart="scatter">
+          <figcaption>
+            <h3>⑤ 散点图 · 人口 × 盗窃案（双对数）</h3>
+            <p class="gal-note">位置编码最强，双对数坐标把跨 4 个数量级的关系压成一条近直线的幂律。悬停看州名与数值。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-04/#ch-4-2">4.2 坐标轴变换</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="heat">
+          <figcaption>
+            <h3>⑥ 热力图 · 州 × 犯罪类型</h3>
+            <p class="gal-note">二维表 → <b>顺序型 colormap</b>。每列按自身最大值归一化，否则数值大的类型会吃掉所有颜色。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-03/#ch-3-2">3.2 colormap 三类选择</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="parcoords">
+          <figcaption>
+            <h3>⑦ 平行坐标 · 8 个犯罪指标</h3>
+            <p class="gal-note">高维数据的“散点图”：每根轴一个维度、每条线一个州。颜色映射谋杀率，悬停高亮某一条线。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-04/#ch-4-2">4.2 坐标轴变换</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================== C · 天气数据 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">C · 全年天气 <span class="gal-ds">weather_2024.csv · 366 行 × 3 列</span></h2>
+      <p class="gal-lead">时间序列的两种基本视角：连续视角（折线）与周期视角（日历热图）。同一批数据，两种读法。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card gal-wide" data-chart="line">
+          <figcaption>
+            <h3>⑧ 折线图 · 全年最高气温</h3>
+            <p class="gal-note">x 轴 = 时间、y 轴 = 度量。<b>Cleveland 45° 法则</b>告诉我们，斜率要贴近 45° 才好判断变化。悬停出现十字准星。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-2">5.2 标准时间可视化</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="calendar">
+          <figcaption>
+            <h3>⑨ 日历热图 · 全年降雨量（van Wijk）</h3>
+            <p class="gal-note">以“年 = 行 / 周 = 列 / 星期 = 行内位置”重排时间，把 366 天压进一屏，一眼看出雨季。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-3">5.3 日历热图</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="smallmult">
+          <figcaption>
+            <h3>⑪ 小倍数 · 12 个月的日最高气温</h3>
+            <p class="gal-note">同一结构重复 12 次、<b>共用同一条 y 轴</b>，才能横向比较；如果每个分面各自缩放，季节差异就被抹平了。虚线 = 全年日均值。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-3">5.3 小倍数</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================== D · 人名时序 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">D · 法国人名时序 <span class="gal-ds">french_names.json · Marie / Jean / Camille</span></h2>
+      <p class="gal-lead">同一段“121 年的时间序列”，直线看不出周期，把它卷成螺旋后，代际起伏就浮出来了；把三个名字叠起来，又能读到“谁在替代谁”。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card gal-wide" data-chart="spiral">
+          <figcaption>
+            <h3>⑩ 阿基米德螺旋 · Marie 的百年兴衰</h3>
+            <p class="gal-note">把时间轴首尾相接卷成螺旋：圈 = 代际周期，半径随年份增长，颜色 = 当年新生儿数量。悬停看某一年。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-4">5.4 周期时间可视化</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="stream">
+          <figcaption>
+            <h3>⑫ 堆叠面积 · 三个名字的总量此消彼长</h3>
+            <p class="gal-note"><code>d3.stack()</code> 把三条序列叠成厚度，看的是“总量 + 构成”。注意：只有最下面那层的斜率能直接读，中间层的起伏会被上层挤压。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-2">5.2 面积 / 堆叠面积</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================== E · 补充数据集 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">E · 补充数据集 <span class="gal-ds">terrain10.csv · 1985CrimeGender.csv</span></h2>
+      <p class="gal-lead">标量场与“两期对照”，分别对应等值线与斜率图这两类专门编码。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card gal-wide" data-chart="contour">
+          <figcaption>
+            <h3>⑬ 等值线 · 10×10 地形标量场（Marching Squares）</h3>
+            <p class="gal-note">背景色块 = 数值高低，黑线 = 数值恰好等于阈值的等值线。<b>拖动滑块</b>改变阈值，看等值线如何“生长”与合并 —— 这就是教材里那个 16 种 case 的算法。</p>
+          </figcaption>
+          <div class="gal-ctrl">
+            <label for="gal-contour-range">等值线阈值</label>
+            <input id="gal-contour-range" type="range" min="0" max="100" value="55" step="1" />
+            <output id="gal-contour-out">—</output>
+          </div>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-04/#ch-4-5">4.5 标量场与等值线</a></p>
+        </figure>
+
+        <figure class="gal-card gal-wide" data-chart="slope">
+          <figcaption>
+            <h3>⑭ 斜率图 / 哑铃图 · 1985 年犯罪的性别构成</h3>
+            <p class="gal-note">每个类别一条哑铃：左端点 = 男性、右端点 = 女性，两端距离本身就是读数。x 轴用<b>平方根缩放</b>，否则 0 到 120 万的跨度会把小数值全部压到底线。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-05/#ch-5-2">5.2 两期对照</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ==================== F · 数据质量对照 ==================== -->
+    <section class="gal-section">
+      <h2 class="gal-h2">F · 数据质量对照 <span class="gal-ds">supplementary/newstudent.csv + 2 份错误版本</span></h2>
+      <p class="gal-lead">同一份 480 行新生表，只改 5 行，就能把“一致性”和“准确性”同时打穿 —— 数据质量决定可视化的可信度。</p>
+
+      <div class="gal-grid">
+        <figure class="gal-card gal-wide" data-chart="quality">
+          <figcaption>
+            <h3>⑮ 对照条形图 · 改 5 行数据会发生什么</h3>
+            <p class="gal-note">左：班级类别数 <b>16 → 21</b>（5 行班级名被插入“极”字，凭空多出 5 个类别，聚合结果直接变形）；右：年龄非法值 <b>0 → 5</b>（<code>极18</code> / <code>18极</code> 这类字符串混进数值列，坐标轴无从计算）。</p>
+          </figcaption>
+          <div class="gal-mount"></div>
+          <p class="gal-src">对应 <a href="lesson-01/#ch-1-1">1.1 数据质量四维度</a></p>
+        </figure>
+      </div>
+    </section>
+
+    <p class="gal-footer-note">
+      还想继续玩？回到门户 <a href="./#tools">🧰 学习工具</a> —— 那里还有
+      <a href="cheatsheet.html">🎯 图表选型决策器</a> 与 <a href="glossary.html">📖 术语表</a>。
+    </p>
+  </main>
+
+<script type="module">
+/* =====================================================================
+ * gallery.html —— 可视化画廊
+ *   10 张图全部基于站内真实数据集，可交互（hover 显示数值）。
+ *   零依赖：仅动态 import D3 v7（CDN）。
+ * ===================================================================== */
+
+/* ---------- 1. 动态加载 D3 ---------- */
+let d3 = null;
+try {
+  d3 = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+} catch (e) {
+  console.warn("[gallery] D3 加载失败：", e);
+  document.querySelectorAll(".gal-mount").forEach(m => {
+    m.innerHTML = '<p class="gal-err">D3 加载失败（CDN 需要联网）。请检查网络后刷新。</p>';
+  });
+}
+
+if (d3) {
+  /* ---------- 2. 载入真实数据 ---------- */
+  const [students, crime, weather, names] = await Promise.all([
+    d3.csv("./lesson-01/data/newstudent.csv", d3.autoType),
+    d3.csv("./lesson-04/data/crime.csv", d3.autoType),
+    d3.csv("./lesson-05/data/weather_2024.csv", d3.autoType),
+    fetch("./lesson-05/data/french_names.json").then(r => r.json()),
+  ]);
+
+  /* ---------- 2b. 补充数据集（独立加载：失败只影响 E / F 区的新卡片） ---------- */
+  const extra = {};
+  const stripZW = s => String(s == null ? "" : s).replace(/[\u200b-\u200f\ufeff]/g, "").trim();
+  try {
+    const SUP = "./supplementary/";
+    const [terrainTxt, crimeGender, studentFull, studentBadClass, studentBadAge] = await Promise.all([
+      d3.text(SUP + "data/terrain10.csv"),
+      d3.csv(SUP + "data/1985CrimeGender.csv"),
+      d3.csv(SUP + "newstudent.csv"),
+      d3.csv(SUP + encodeURIComponent("newstudent - 班级信息错误.csv")),
+      d3.csv(SUP + encodeURIComponent("newstudent - 5人年龄错误.csv")),
+    ]);
+    // terrain10.csv 无表头：手工切成二维数值网格
+    extra.terrain = terrainTxt.trim().split(/\r?\n/).map(r => r.split(",").map(Number));
+    extra.gender = crimeGender.map(d => ({
+      type: stripZW(d["犯罪类型"]), male: +stripZW(d["男性"]), female: +stripZW(d["女性"]),
+    })).filter(d => d.type);
+    const normRows = rows => rows.map(d => {
+      const o = {};
+      for (const k in d) o[stripZW(k)] = stripZW(d[k]);
+      return o;
+    });
+    extra.students = normRows(studentFull);
+    extra.badClass = normRows(studentBadClass);
+    extra.badAge = normRows(studentBadAge);
+  } catch (e) {
+    console.warn("[gallery] 补充数据加载失败：", e);
+  }
+
+  const errCard = (id, msg) => {
+    const m = mountOf(id);
+    if (m) m.innerHTML = '<p class="gal-err">' + msg + "</p>";
+  };
+
+  /* ---------- 2c. Marching Squares：从网格标量场插值出等值线 ---------- */
+  function marchingSquares(grid, t) {
+    const rows = grid.length, cols = grid[0].length, segs = [];
+    const cross = (v1, v2, x1, y1, x2, y2) => {
+      const f = (t - v1) / (v2 - v1);
+      return [x1 + (x2 - x1) * f, y1 + (y2 - y1) * f];
+    };
+    /* 边编号：0 上 / 1 右 / 2 下 / 3 左；case 位序 TL=8 TR=4 BR=2 BL=1 */
+    const TABLE = {
+      1: [[3, 2]], 2: [[2, 1]], 3: [[3, 1]], 4: [[0, 1]],
+      5: [[0, 1], [2, 3]], 6: [[0, 2]], 7: [[0, 3]], 8: [[3, 0]],
+      9: [[0, 2]], 10: [[0, 3], [1, 2]], 11: [[0, 1]],
+      12: [[3, 1]], 13: [[2, 1]], 14: [[3, 2]],
+    };
+    for (let j = 0; j < rows - 1; j++) {
+      for (let i = 0; i < cols - 1; i++) {
+        const a = grid[j][i], b = grid[j][i + 1], c = grid[j + 1][i + 1], d = grid[j + 1][i];
+        const idx = (a > t ? 8 : 0) | (b > t ? 4 : 0) | (c > t ? 2 : 0) | (d > t ? 1 : 0);
+        if (idx === 0 || idx === 15) continue;
+        const E = [
+          cross(a, b, i, j, i + 1, j),
+          cross(b, c, i + 1, j, i + 1, j + 1),
+          cross(d, c, i, j + 1, i + 1, j + 1),
+          cross(a, d, i, j, i, j + 1),
+        ];
+        (TABLE[idx] || []).forEach(([p, q]) => segs.push([E[p], E[q]]));
+      }
+    }
+    return segs;
+  }
+
+  const CRIME_TYPES = [
+    { k: "robbery",             t: "抢劫" },
+    { k: "aggravated_assault",  t: "重伤" },
+    { k: "burglary",            t: "入室" },
+    { k: "larceny_theft",       t: "盗窃" },
+    { k: "motor_vehicle_theft", t: "盗车" },
+    { k: "murder",              t: "谋杀" },
+    { k: "arson",               t: "纵火" },
+    { k: "rape1",               t: "强奸" },
+  ];
+
+  /* ---------- 3. 通用工具 ---------- */
+  const mountOf = id => document.querySelector('.gal-card[data-chart="' + id + '"] .gal-mount');
+
+  function mountSvg(id, w, h) {
+    const mount = mountOf(id);
+    mount.innerHTML = "";
+    const svg = d3.select(mount)
+      .append("svg")
+      .attr("viewBox", "0 0 " + w + " " + h)
+      .attr("class", "gal-svg")
+      .attr("role", "img");
+    return { mount, svg };
+  }
+
+  function makeTip(mount) {
+    const tip = document.createElement("div");
+    tip.className = "gal-tip";
+    mount.appendChild(tip);
+    const place = evt => {
+      const r = mount.getBoundingClientRect();
+      tip.style.left = (evt.clientX - r.left + 12) + "px";
+      tip.style.top  = (evt.clientY - r.top  + 12) + "px";
+    };
+    return {
+      show(html, evt) { tip.innerHTML = html; place(evt); tip.style.opacity = "1"; },
+      move(evt) { place(evt); },
+      hide() { tip.style.opacity = "0"; },
+    };
+  }
+
+  const fmt = d3.format(",");
+  const gridY = (svg, y, x0, x1) =>
+    svg.append("g").attr("transform", "translate(" + x0 + ",0)")
+      .call(d3.axisLeft(y).ticks(5).tickSize(-(x1 - x0)).tickFormat(""))
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll("line").attr("stroke", "#eef2f7"));
+
+  /* ============================ ① 柱状图 ============================ */
+  function chartBar() {
+    const W = 640, H = 300, m = { t: 16, r: 18, b: 78, l: 48 };
+    const { mount, svg } = mountSvg("bar", W, H);
+    const tip = makeTip(mount);
+    const data = d3.rollups(students, v => v.length, d => d.班级)
+      .map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
+
+    const x = d3.scaleBand().domain(data.map(d => d.k)).range([m.l, W - m.r]).padding(0.3);
+    const y = d3.scaleLinear().domain([0, d3.max(data, d => d.v)]).nice().range([H - m.b, m.t]);
+
+    gridY(svg, y, m.l, W - m.r);
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).tickSize(0))
+      .call(g => { g.select(".domain").attr("stroke", "#cbd5e1");
+        g.selectAll("text").attr("font-size", 11).attr("transform", "rotate(-24)").attr("text-anchor", "end").attr("dy", "0.4em").attr("dx", "-0.4em"); });
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(5).tickSize(0)).call(g => g.select(".domain").remove());
+
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(data.map(d => d.k));
+    svg.append("g").selectAll("rect").data(data).join("rect")
+      .attr("x", d => x(d.k)).attr("width", x.bandwidth())
+      .attr("y", H - m.b).attr("height", 0).attr("rx", 4)
+      .attr("fill", d => color(d.k))
+      .on("mouseover", (e, d) => tip.show("<b>" + d.k + "</b><br/>人数 " + d.v + " 人（占 " + (d.v / students.length * 100).toFixed(1) + "%）", e))
+      .on("mousemove", e => tip.move(e)).on("mouseout", () => tip.hide())
+      .transition().duration(600).attr("y", d => y(d.v)).attr("height", d => y(0) - y(d.v));
+
+    svg.append("g").selectAll("text.val").data(data).join("text")
+      .attr("x", d => x(d.k) + x.bandwidth() / 2).attr("y", d => y(d.v) - 6)
+      .attr("text-anchor", "middle").attr("font-size", 11).attr("fill", "#475569")
+      .text(d => d.v);
+    svg.append("text").attr("x", m.l).attr("y", 14).attr("font-size", 11).attr("fill", "#94a3b8").text("人数");
+  }
+
+  /* ============================ ② 直方图 ============================ */
+  function chartHist() {
+    const W = 640, H = 300, m = { t: 16, r: 18, b: 40, l: 44 };
+    const { mount, svg } = mountSvg("hist", W, H);
+    const tip = makeTip(mount);
+    const ages = students.map(d => d.年龄);
+    const bins = d3.bin().domain(d3.extent(ages)).thresholds(d3.range(16, 23)).value(d => d)(ages);
+
+    const x = d3.scaleLinear().domain([16, 22]).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([0, d3.max(bins, b => b.length)]).nice().range([H - m.b, m.t]);
+    gridY(svg, y, m.l, W - m.r);
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).ticks(6).tickFormat(d => d + " 岁"))
+      .call(g => g.select(".domain").attr("stroke", "#cbd5e1"));
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(5).tickSize(0)).call(g => g.select(".domain").remove());
+
+    svg.append("g").selectAll("rect").data(bins).join("rect")
+      .attr("x", d => x(d.x0) + 1).attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 2))
+      .attr("y", H - m.b).attr("height", 0).attr("rx", 3)
+      .attr("fill", d => d3.interpolateViridis((d.x0 - 16) / 6))
+      .on("mouseover", (e, d) => tip.show("<b>" + d.x0 + "–" + d.x1 + " 岁</b><br/>" + d.length + " 人", e))
+      .on("mousemove", e => tip.move(e)).on("mouseout", () => tip.hide())
+      .transition().duration(600).attr("y", d => y(d.length)).attr("height", d => y(0) - y(d.length));
+
+    const mean = d3.mean(ages);
+    svg.append("line").attr("x1", x(mean)).attr("x2", x(mean)).attr("y1", m.t).attr("y2", H - m.b)
+      .attr("stroke", "#ef4444").attr("stroke-width", 1.5).attr("stroke-dasharray", "4 3");
+    svg.append("text").attr("x", x(mean) + 4).attr("y", m.t + 12).attr("font-size", 11).attr("fill", "#ef4444")
+      .text("均值 " + mean.toFixed(2));
+  }
+
+  /* ============================ ③ 箱线图 ============================ */
+  function chartBox() {
+    const W = 640, H = 300, m = { t: 16, r: 18, b: 56, l: 44 };
+    const { mount, svg } = mountSvg("box", W, H);
+    const tip = makeTip(mount);
+    const groups = d3.rollups(students, v => v.map(d => d.年龄), d => d.班级);
+    const stats = groups.map(([k, vals]) => {
+      const s = vals.slice().sort(d3.ascending);
+      return { k, min: s[0], max: s[s.length - 1], q1: d3.quantile(s, 0.25), q2: d3.quantile(s, 0.5), q3: d3.quantile(s, 0.75), n: s.length, vals: s };
+    });
+
+    const x = d3.scaleBand().domain(stats.map(d => d.k)).range([m.l, W - m.r]).padding(0.35);
+    const y = d3.scaleLinear().domain([d3.min(students, d => d.年龄) - 0.5, d3.max(students, d => d.年龄) + 0.5]).range([H - m.b, m.t]);
+    gridY(svg, y, m.l, W - m.r);
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).tickSize(0))
+      .call(g => { g.select(".domain").attr("stroke", "#cbd5e1");
+        g.selectAll("text").attr("font-size", 11).attr("transform", "rotate(-20)").attr("text-anchor", "end").attr("dy", "0.3em").attr("dx", "-0.3em"); });
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + " 岁").tickSize(0)).call(g => g.select(".domain").remove());
+
+    const bw = Math.min(48, x.bandwidth());
+    const g = svg.append("g");
+    stats.forEach(d => {
+      const cx = x(d.k) + x.bandwidth() / 2;
+      const col = "#4f46e5";
+      g.append("line").attr("x1", cx).attr("x2", cx).attr("y1", y(d.min)).attr("y2", y(d.max)).attr("stroke", col);
+      g.append("line").attr("x1", cx - 10).attr("x2", cx + 10).attr("y1", y(d.min)).attr("y2", y(d.min)).attr("stroke", col);
+      g.append("line").attr("x1", cx - 10).attr("x2", cx + 10).attr("y1", y(d.max)).attr("y2", y(d.max)).attr("stroke", col);
+      g.append("rect").attr("x", cx - bw / 2).attr("y", y(d.q3)).attr("width", bw).attr("height", Math.max(1, y(d.q1) - y(d.q3)))
+        .attr("fill", "#e0e7ff").attr("stroke", col);
+      g.append("line").attr("x1", cx - bw / 2).attr("x2", cx + bw / 2).attr("y1", y(d.q2)).attr("y2", y(d.q2)).attr("stroke", "#dc2626").attr("stroke-width", 2);
+      const outlier = d.vals.filter(v => v < d.q1 - 1.5 * (d.q3 - d.q1) || v > d.q3 + 1.5 * (d.q3 - d.q1));
+      g.append("g").selectAll("circle").data(outlier).join("circle")
+        .attr("cx", cx).attr("cy", v => y(v)).attr("r", 2.6).attr("fill", "#dc2626");
+      g.append("rect").attr("x", x(d.k)).attr("y", m.t).attr("width", x.bandwidth()).attr("height", H - m.b - m.t)
+        .attr("fill", "transparent")
+        .on("mouseover", e => tip.show("<b>" + d.k + "</b><br/>n = " + d.n + "<br/>中位数 " + d.q2.toFixed(1) + " 岁<br/>四分位 " + d.q1 + " – " + d.q3 + " 岁<br/>极值 " + d.min + " – " + d.max + " 岁", e))
+        .on("mousemove", e => tip.move(e)).on("mouseout", () => tip.hide());
+    });
+    svg.append("text").attr("x", m.l).attr("y", 12).attr("font-size", 11).attr("fill", "#94a3b8").text("年龄");
+  }
+
+  /* ============================ ④ 树图 ============================ */
+  function chartTree() {
+    const W = 640, H = 320, PAD = 18;
+    const { mount, svg } = mountSvg("tree", W, H);
+    const tip = makeTip(mount);
+    const byGender = d3.rollups(students, v => v.length, d => d.性别, d => d.班级);
+    const rootData = {
+      name: "全体新生",
+      children: byGender.map(([g, cls]) => ({
+        name: g,
+        children: cls.map(([c, n]) => ({ name: c, value: n })),
+      })),
+    };
+    const root = d3.hierarchy(rootData).sum(d => d.value || 0).sort((a, b) => b.value - a.value);
+    const topColor = d3.scaleOrdinal().domain(byGender.map(g => g[0])).range(["#2563eb", "#db2777", "#0d9488", "#ea580c"]);
+
+    d3.treemap().size([W - PAD * 2, H - PAD * 2]).paddingInner(4).paddingOuter(4).round(true)(root);
+
+    const g = svg.append("g").attr("transform", "translate(" + PAD + "," + PAD + ")");
+    const leaves = root.leaves();
+    // 父层（性别）背景块
+    root.children.forEach(c => {
+      const xs = d3.extent(c.leaves(), l => l.x0), ys = d3.extent(c.leaves(), l => l.y0);
+      g.append("rect").attr("x", xs[0]).attr("y", ys[0]).attr("width", xs[1] - xs[0]).attr("height", ys[1] - ys[0])
+        .attr("fill", topColor(c.data.name)).attr("opacity", 0.12).attr("rx", 6);
+      const cx = (xs[0] + xs[1]) / 2;
+      g.append("text").attr("x", cx).attr("y", ys[0] + 13).attr("text-anchor", "middle")
+        .attr("font-size", 12).attr("font-weight", 700).attr("fill", topColor(c.data.name))
+        .text(c.data.name + " · " + c.value + " 人");
+    });
+    const leavesG = g.selectAll("g.leaf").data(leaves).join("g").attr("class", "leaf");
+    leavesG.append("rect")
+      .attr("x", d => d.x0).attr("y", d => d.y0).attr("width", d => d.x1 - d.x0).attr("height", d => d.y1 - d.y0)
+      .attr("rx", 3).attr("fill", d => topColor(d.parent.data.name)).attr("opacity", 0.78)
+      .attr("stroke", "#fff").attr("stroke-width", 1)
+      .on("mouseover", (e, d) => tip.show("<b>" + d.parent.data.name + " · " + d.data.name + "</b><br/>" + d.value + " 人（占 " + (d.value / students.length * 100).toFixed(1) + "%）", e))
+      .on("mousemove", e => tip.move(e)).on("mouseout", () => tip.hide());
+    leavesG.append("text")
+      .attr("x", d => d.x0 + 6).attr("y", d => d.y0 + 16)
+      .attr("font-size", 11).attr("fill", "#fff")
+      .attr("opacity", d => (d.x1 - d.x0) > 62 ? 1 : 0)
+      .text(d => d.data.name);
+  }
+
+  /* ============================ ⑤ 散点图 ============================ */
+  function chartScatter() {
+    const W = 880, H = 380, m = { t: 18, r: 20, b: 46, l: 62 };
+    const { mount, svg } = mountSvg("scatter", W, H);
+    const tip = makeTip(mount);
+    const x = d3.scaleLog().domain(d3.extent(crime, d => d.population)).nice().range([m.l, W - m.r]);
+    const y = d3.scaleLog().domain(d3.extent(crime, d => d.larceny_theft)).nice().range([H - m.b, m.t]);
+
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).ticks(6, "~s"))
+      .call(g => g.select(".domain").attr("stroke", "#cbd5e1"));
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(6, "~s"))
+      .call(g => g.select(".domain").remove());
+
+    // 幂律参考线 r ≈ a·P^b（用最小二乘在 log 空间拟合）
+    const lx = d3.mean(crime, d => Math.log10(d.population));
+    const ly = d3.mean(crime, d => Math.log10(d.larceny_theft));
+    const num = d3.sum(crime, d => (Math.log10(d.population) - lx) * (Math.log10(d.larceny_theft) - ly));
+    const den = d3.sum(crime, d => Math.pow(Math.log10(d.population) - lx, 2));
+    const b = num / den, a = ly - b * lx;
+    const xr = d3.extent(crime, d => d.population);
+    svg.append("line")
+      .attr("x1", x(xr[0])).attr("y1", y(Math.pow(10, a + b * Math.log10(xr[0]))))
+      .attr("x2", x(xr[1])).attr("y2", y(Math.pow(10, a + b * Math.log10(xr[1]))))
+      .attr("stroke", "#f59e0b").attr("stroke-width", 1.6).attr("stroke-dasharray", "6 4");
+
+    const r = d3.scaleSqrt().domain(d3.extent(crime, d => d.murder)).range([3, 11]);
+    svg.append("g").selectAll("circle").data(crime).join("circle")
+      .attr("cx", d => x(d.population)).attr("cy", d => y(d.larceny_theft))
+      .attr("r", d => r(d.murder))
+      .attr("fill", "#6366f1").attr("opacity", 0.55).attr("stroke", "#fff").attr("stroke-width", 0.8)
+      .on("mouseover", function (e, d) {
+        d3.select(this).attr("opacity", 1).attr("stroke", "#1e1b4b").attr("stroke-width", 1.6);
+        tip.show("<b>" + d.state + "</b><br/>人口 " + fmt(d.population) + "<br/>盗窃 " + fmt(d.larceny_theft) + " 起<br/>谋杀 " + fmt(d.murder) + " 起", e);
+      })
+      .on("mousemove", e => tip.move(e))
+      .on("mouseout", function () { d3.select(this).attr("opacity", 0.55).attr("stroke", "#fff").attr("stroke-width", 0.8); tip.hide(); });
+
+    svg.append("text").attr("x", W - m.r).attr("y", H - m.b + 34).attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#94a3b8").text("人口（log）→");
+    svg.append("text").attr("transform", "rotate(-90)").attr("x", -m.t).attr("y", 14).attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#94a3b8").text("盗窃案（log）");
+    svg.append("text").attr("x", m.l + 6).attr("y", m.t + 12).attr("font-size", 11).attr("fill", "#f59e0b")
+      .text("幂律拟合 斜率 b = " + b.toFixed(2) + "（>1 表示超线性）");
+    // 大小图例
+    const leg = svg.append("g").attr("transform", "translate(" + (W - m.r - 96) + "," + (m.t + 6) + ")");
+    [50, 500, 2000].forEach((v, i) => {
+      leg.append("circle").attr("cx", 0).attr("cy", i * 20 + 4).attr("r", r(v)).attr("fill", "#6366f1").attr("opacity", 0.55);
+      leg.append("text").attr("x", 16).attr("y", i * 20 + 8).attr("font-size", 10).attr("fill", "#64748b").text(v + " 起谋杀");
+    });
+  }
+
+  /* ============================ ⑥ 热力图 ============================ */
+  function chartHeat() {
+    const W = 880, H = 400, m = { t: 40, r: 18, b: 96, l: 92 };
+    const { mount, svg } = mountSvg("heat", W, H);
+    const tip = makeTip(mount);
+    const maxBy = {};
+    CRIME_TYPES.forEach(c => { maxBy[c.k] = d3.max(crime, d => d[c.k]); });
+    const x = d3.scaleBand().domain(crime.map(d => d.state)).range([m.l, W - m.r]).paddingInner(0.08).paddingOuter(0.02);
+    const y = d3.scaleBand().domain(CRIME_TYPES.map(c => c.k)).range([m.t, H - m.b]).paddingInner(0.12).paddingOuter(0.02);
+    const color = d3.scaleSequential(d3.interpolateReds).domain([0, 1]);
+
+    const cells = [];
+    crime.forEach(row => CRIME_TYPES.forEach(c => cells.push({ state: row.state, type: c, raw: row[c.k], norm: row[c.k] / maxBy[c.k] })));
+
+    svg.append("g").selectAll("rect").data(cells).join("rect")
+      .attr("x", d => x(d.state)).attr("y", d => y(d.type.k))
+      .attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 1.5)
+      .attr("fill", d => color(Math.sqrt(d.norm)))
+      .on("mouseover", function (e, d) {
+        d3.select(this).attr("stroke", "#1e1b4b").attr("stroke-width", 1.6);
+        tip.show("<b>" + d.state + "</b><br/>" + d.type.t + "：" + fmt(d.raw) + " 起<br/>占该指标最大值 " + (d.norm * 100).toFixed(0) + "%", e);
+      })
+      .on("mousemove", e => tip.move(e))
+      .on("mouseout", function () { d3.select(this).attr("stroke", "none"); tip.hide(); });
+
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).tickSize(0).tickFormat(k => (CRIME_TYPES.find(c => c.k === k) || {}).t))
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll("text").attr("font-size", 11).attr("fill", "#334155"));
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).tickSize(0))
+      .call(g => { g.select(".domain").remove();
+        g.selectAll("text").attr("font-size", 7).attr("transform", "rotate(-90)").attr("text-anchor", "end").attr("dy", "-0.3em").attr("dx", "0.3em"); });
+    svg.append("text").attr("x", m.l).attr("y", 16).attr("font-size", 11).attr("fill", "#94a3b8").text("每列按自身最大值归一化 · 颜色越深 = 该州在此指标上越高");
+
+    // 颜色图例
+    const lg = svg.append("g").attr("transform", "translate(" + (W - m.r - 150) + ",34)");
+    const defs = svg.append("defs");
+    const grad = defs.append("linearGradient").attr("id", "gal-red-grad");
+    d3.range(0, 1.01, 0.1).forEach(t => grad.append("stop").attr("offset", t * 100 + "%").attr("stop-color", color(t)));
+    lg.append("rect").attr("width", 110).attr("height", 8).attr("fill", "url(#gal-red-grad)").attr("rx", 2);
+    lg.append("text").attr("x", 0).attr("y", 20).attr("font-size", 9).attr("fill", "#94a3b8").text("0%");
+    lg.append("text").attr("x", 110).attr("y", 20).attr("text-anchor", "end").attr("font-size", 9).attr("fill", "#94a3b8").text("100%");
+  }
+
+  /* ============================ ⑦ 平行坐标 ============================ */
+  function chartParCoords() {
+    const W = 880, H = 360, m = { t: 28, r: 24, b: 36, l: 30 };
+    const { mount, svg } = mountSvg("parcoords", W, H);
+    const tip = makeTip(mount);
+    const ySc = {};
+    CRIME_TYPES.forEach(c => { ySc[c.k] = d3.scaleLinear().domain(d3.extent(crime, d => d[c.k])).range([H - m.b, m.t]); });
+    const x = d3.scalePoint().domain(CRIME_TYPES.map(c => c.k)).range([m.l + 20, W - m.r - 20]);
+    const color = d3.scaleSequential(d3.interpolateTurbo)
+      .domain([0, d3.max(crime, d => d.murder)]).unknown("#cbd5e1");
+
+    const line = d3.line();
+    const gLines = svg.append("g");
+    crime.forEach(row => {
+      const pts = CRIME_TYPES.map(c => [x(c.k), ySc[c.k](row[c.k])]);
+      gLines.append("path").attr("d", line(pts))
+        .attr("fill", "none").attr("stroke", color(row.murder))
+        .attr("stroke-width", 1).attr("opacity", 0.45).attr("class", "pcline")
+        .on("mouseover", function (e) {
+          d3.select(this).attr("stroke-width", 3).attr("opacity", 1).raise();
+          tip.show("<b>" + row.state + "</b><br/>谋杀 " + fmt(row.murder) + " 起<br/>人口 " + fmt(row.population), e);
+        })
+        .on("mousemove", e => tip.move(e))
+        .on("mouseout", function () { d3.select(this).attr("stroke-width", 1).attr("opacity", 0.45); tip.hide(); });
+    });
+    const axesG = svg.append("g");
+    CRIME_TYPES.forEach(c => {
+      const cx = x(c.k);
+      axesG.append("line").attr("x1", cx).attr("x2", cx).attr("y1", m.t).attr("y2", H - m.b)
+        .attr("stroke", "#cbd5e1");
+      axesG.append("g").attr("transform", "translate(" + cx + ",0)")
+        .call(d3.axisRight(ySc[c.k]).ticks(4, "~s").tickSize(3))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll("text").attr("font-size", 9).attr("fill", "#94a3b8"));
+      axesG.append("text").attr("x", cx).attr("y", m.t - 10).attr("text-anchor", "middle").attr("font-size", 11).attr("fill", "#334155").text(c.t);
+    });
+    svg.append("text").attr("x", m.l).attr("y", 14).attr("font-size", 11).attr("fill", "#94a3b8").text("50 个州 · 每条线一个州 · 颜色 = 谋杀案数量");
+  }
+
+  /* ============================ ⑧ 折线图 ============================ */
+  function chartLine() {
+    const W = 880, H = 340, m = { t: 22, r: 24, b: 34, l: 48 };
+    const { mount, svg } = mountSvg("line", W, H);
+    const tip = makeTip(mount);
+    const x = d3.scaleTime().domain(d3.extent(weather, d => d.date)).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain(d3.extent(weather, d => d.temp_max)).nice().range([H - m.b, m.t]);
+    const grad = svg.append("defs").append("linearGradient").attr("id", "gal-temp-grad")
+      .attr("x1", 0).attr("y1", 0).attr("x2", 0).attr("y2", 1);
+    grad.append("stop").attr("offset", "0%").attr("stop-color", "#f97316").attr("stop-opacity", 0.35);
+    grad.append("stop").attr("offset", "100%").attr("stop-color", "#f97316").attr("stop-opacity", 0.02);
+
+    gridY(svg, y, m.l, W - m.r);
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).ticks(d3.timeMonth.every(1)).tickFormat(d3.timeFormat("%m 月")))
+      .call(g => g.select(".domain").attr("stroke", "#cbd5e1"));
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + "°C").tickSize(0)).call(g => g.select(".domain").remove());
+
+    const area = d3.area().x(d => x(d.date)).y0(y.range()[0]).y1(d => y(d.temp_max)).curve(d3.curveMonotoneX);
+    const lineG = d3.line().x(d => x(d.date)).y(d => y(d.temp_max)).curve(d3.curveMonotoneX);
+    svg.append("path").attr("d", area(weather)).attr("fill", "url(#gal-temp-grad)");
+    svg.append("path").attr("d", lineG(weather)).attr("fill", "none").attr("stroke", "#ea580c").attr("stroke-width", 1.8);
+
+    const focus = svg.append("g").style("display", "none");
+    focus.append("line").attr("class", "fx-line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "#94a3b8").attr("stroke-dasharray", "3 3");
+    focus.append("circle").attr("r", 4).attr("fill", "#ea580c").attr("stroke", "#fff").attr("stroke-width", 1.5);
+    const bisect = d3.bisector(d => d.date).center;
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", W - m.l - m.r).attr("height", H - m.t - m.b)
+      .attr("fill", "transparent")
+      .on("mouseover", () => focus.style("display", null))
+      .on("mousemove", (e) => {
+        const [mx] = d3.pointer(e);
+        const d = weather[bisect(weather, x.invert(mx))];
+        focus.select(".fx-line").attr("x1", x(d.date)).attr("x2", x(d.date));
+        focus.select("circle").attr("cx", x(d.date)).attr("cy", y(d.temp_max));
+        tip.show("<b>" + d3.timeFormat("%Y-%m-%d")(d.date) + "</b><br/>最高气温 " + d.temp_max.toFixed(1) + " °C<br/>降雨 " + d.rain_mm.toFixed(1) + " mm", e);
+      })
+      .on("mouseout", () => { focus.style("display", "none"); tip.hide(); });
+
+    // 45° 参考 + 年均值
+    const meanT = d3.mean(weather, d => d.temp_max);
+    svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(meanT)).attr("y2", y(meanT))
+      .attr("stroke", "#2563eb").attr("stroke-width", 1).attr("stroke-dasharray", "5 4");
+    svg.append("text").attr("x", W - m.r).attr("y", y(meanT) - 5).attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#2563eb")
+      .text("年均 " + meanT.toFixed(1) + " °C");
+  }
+
+  /* ============================ ⑨ 日历热图 ============================ */
+  function chartCalendar() {
+    const W = 880, H = 300, m = { t: 30, r: 20, b: 26, l: 36 };
+    const { mount, svg } = mountSvg("calendar", W, H);
+    const tip = makeTip(mount);
+    const year = 2024;
+    const start = new Date(year, 0, 1), end = new Date(year, 11, 31);
+    const w0 = d3.timeWeek.floor(start);
+    const nWeeks = d3.timeWeek.count(w0, end) + 1;
+    const cellW = (W - m.l - m.r) / nWeeks;
+    const cellH = (H - m.t - m.b) / 7;
+    const maxRain = d3.max(weather, d => d.rain_mm) || 1;
+    const color = d3.scaleSequential(d3.interpolateBlues).domain([0, Math.sqrt(maxRain)]);
+
+    svg.append("g").selectAll("rect").data(weather).join("rect")
+      .attr("x", d => m.l + d3.timeWeek.count(w0, d3.timeWeek.floor(d.date)) * cellW)
+      .attr("y", d => m.t + d.date.getDay() * cellH)
+      .attr("width", Math.max(1, cellW - 1.5)).attr("height", Math.max(1, cellH - 1.5)).attr("rx", 1.5)
+      .attr("fill", d => d.rain_mm > 0 ? color(Math.sqrt(d.rain_mm)) : "#f1f5f9")
+      .on("mouseover", function (e, d) {
+        d3.select(this).attr("stroke", "#1e1b4b").attr("stroke-width", 1.4);
+        tip.show("<b>" + d3.timeFormat("%Y-%m-%d")(d.date) + "</b><br/>降雨 " + d.rain_mm.toFixed(1) + " mm<br/>最高温 " + d.temp_max.toFixed(1) + " °C", e);
+      })
+      .on("mousemove", e => tip.move(e))
+      .on("mouseout", function () { d3.select(this).attr("stroke", "none"); tip.hide(); });
+
+    // 月份标签
+    const months = d3.timeMonths(start, new Date(year + 1, 0, 1));
+    months.forEach(mo => {
+      svg.append("text")
+        .attr("x", m.l + d3.timeWeek.count(w0, d3.timeWeek.floor(mo)) * cellW)
+        .attr("y", m.t - 8).attr("font-size", 10).attr("fill", "#64748b")
+        .text((mo.getMonth() + 1) + "月");
+    });
+    // 星期标签
+    ["日", "一", "二", "三", "四", "五", "六"].forEach((w, i) => {
+      if (i % 2 === 0) svg.append("text").attr("x", m.l - 8).attr("y", m.t + i * cellH + cellH * 0.75)
+        .attr("text-anchor", "end").attr("font-size", 10).attr("fill", "#94a3b8").text(w);
+    });
+    // 图例
+    const lg = svg.append("g").attr("transform", "translate(" + (W - m.r - 130) + "," + (H - 12) + ")");
+    const lgrad = svg.append("defs").append("linearGradient").attr("id", "gal-rain-grad")
+      .attr("x1", 0).attr("x2", 1).attr("y1", 0).attr("y2", 0);
+    d3.range(0, 1.001, 0.1).forEach(t => lgrad.append("stop").attr("offset", t * 100 + "%").attr("stop-color", color(t * Math.sqrt(maxRain))));
+    lg.append("rect").attr("width", 110).attr("height", 8).attr("fill", "url(#gal-rain-grad)").attr("rx", 2);
+    lg.append("text").attr("x", -4).attr("y", 9).attr("text-anchor", "end").attr("font-size", 10).attr("fill", "#94a3b8").text("0");
+    lg.append("text").attr("x", 114).attr("y", 9).attr("font-size", 10).attr("fill", "#94a3b8").text(maxRain.toFixed(0) + " mm");
+  }
+
+  /* ============================ ⑩ 螺旋 ============================ */
+  function chartSpiral() {
+    const W = 880, H = 400;
+    const { mount, svg } = mountSvg("spiral", W, H);
+    const tip = makeTip(mount);
+    const data = names.names.Marie;                 // [{year,count}]
+    const cx = W / 2, cy = H / 2;
+    const Rmax = Math.min(W, H) / 2 - 40;
+    const r0 = 22, turns = 7;
+    const ang = i => (i / (data.length - 1)) * turns * 2 * Math.PI;
+    const rad = i => r0 + (i / (data.length - 1)) * (Rmax - r0);
+    const pts = data.map((d, i) => ({ ...d, i, x: cx + rad(i) * Math.cos(ang(i)), y: cy + rad(i) * Math.sin(ang(i)) }));
+
+    svg.append("circle").attr("cx", cx).attr("cy", cy).attr("r", Rmax + 14).attr("fill", "none").attr("stroke", "#eef2f7");
+    svg.append("circle").attr("cx", cx).attr("cy", cy).attr("r", r0 - 6).attr("fill", "none").attr("stroke", "#eef2f7");
+
+    svg.append("path")
+      .attr("d", d3.line()(pts.map(p => [p.x, p.y])))
+      .attr("fill", "none").attr("stroke", "#cbd5e1").attr("stroke-width", 1);
+
+    const color = d3.scaleSequential(d3.interpolateTurbo).domain([0, d3.max(data, d => d.count)]);
+    const rr = d3.scaleSqrt().domain([0, d3.max(data, d => d.count)]).range([1.6, 7]);
+    svg.append("g").selectAll("circle").data(pts).join("circle")
+      .attr("cx", d => d.x).attr("cy", d => d.y).attr("r", d => rr(d.count))
+      .attr("fill", d => d.count === 0 ? "#e2e8f0" : color(d.count)).attr("opacity", 0.9)
+      .on("mouseover", function (e, d) {
+        d3.select(this).attr("stroke", "#1e1b4b").attr("stroke-width", 1.6);
+        tip.show("<b>" + d.year + " 年</b><br/>新生儿 " + d.count + " 人<br/>螺旋第 " + (d.i / (data.length - 1) * turns).toFixed(2) + " 圈", e);
+      })
+      .on("mousemove", e => tip.move(e))
+      .on("mouseout", function () { d3.select(this).attr("stroke", "none"); tip.hide(); });
+
+    // 关键年份标注
+    [1910, 1950, 1970, 1990, 2010].forEach(yr => {
+      const p = pts.find(d => d.year === yr);
+      if (!p) return;
+      svg.append("text").attr("x", p.x).attr("y", p.y - 10).attr("text-anchor", "middle")
+        .attr("font-size", 10).attr("fill", "#4338ca").attr("font-weight", 600).text(yr);
+    });
+    svg.append("text").attr("x", cx).attr("y", cy - 4).attr("text-anchor", "middle").attr("font-size", 12).attr("fill", "#94a3b8").text("Marie");
+    svg.append("text").attr("x", cx).attr("y", cy + 12).attr("text-anchor", "middle").attr("font-size", 10).attr("fill", "#cbd5e1").text("1900 → 2020");
+
+    // 图例
+    const lg = svg.append("g").attr("transform", "translate(" + (W - 148) + ",22)");
+    const lgrad = svg.append("defs").append("linearGradient").attr("id", "gal-turbo-grad")
+      .attr("x1", 0).attr("x2", 1).attr("y1", 0).attr("y2", 0);
+    d3.range(0, 1.001, 0.1).forEach(t => lgrad.append("stop").attr("offset", t * 100 + "%").attr("stop-color", color(t * d3.max(data, d => d.count))));
+    lg.append("rect").attr("width", 110).attr("height", 8).attr("fill", "url(#gal-turbo-grad)").attr("rx", 2);
+    lg.append("text").attr("x", 0).attr("y", 22).attr("font-size", 9).attr("fill", "#94a3b8").text("0");
+    lg.append("text").attr("x", 110).attr("y", 22).attr("text-anchor", "end").attr("font-size", 9).attr("fill", "#94a3b8").text(d3.max(data, d => d.count) + " 人/年");
+  }
+
+  /* ============================ ⑪ 小倍数 · 12 个月 ============================ */
+  function chartSmallMult() {
+    const W = 880, H = 470, m = { t: 36, r: 16, b: 30, l: 42 };
+    const { mount, svg } = mountSvg("smallmult", W, H);
+    const tip = makeTip(mount);
+    const cols = 4, rowsN = 3, gapX = 14, gapY = 34;
+    const fw = (W - m.l - m.r - gapX * (cols - 1)) / cols;
+    const fh = (H - m.t - m.b - gapY * (rowsN - 1)) / rowsN;
+    const yDom = d3.extent(weather, d => d.temp_max);
+    const meanT = d3.mean(weather, d => d.temp_max);
+
+    svg.append("text").attr("x", m.l).attr("y", 15).attr("font-size", 11).attr("fill", "#94a3b8")
+      .text("12 个分面共用同一条 y 轴（" + yDom[0].toFixed(0) + " ~ " + yDom[1].toFixed(0) + " °C）· 灰虚线 = 全年日均 " + meanT.toFixed(1) + " °C");
+
+    d3.range(0, 12).forEach(mo => {
+      const data = weather.filter(d => d.date.getMonth() === mo);
+      if (!data.length) return;
+      const cx = m.l + (mo % cols) * (fw + gapX);
+      const cy = m.t + Math.floor(mo / cols) * (fh + gapY);
+      const g = svg.append("g").attr("transform", "translate(" + cx + "," + cy + ")");
+      const yy = d3.scaleLinear().domain(yDom).range([fh, 0]);
+      const x = d3.scaleLinear().domain([0, data.length - 1]).range([0, fw]);
+
+      g.append("rect").attr("width", fw).attr("height", fh).attr("fill", "#fbfdff").attr("stroke", "#eef2f7");
+      g.append("line").attr("x1", 0).attr("x2", fw).attr("y1", yy(meanT)).attr("y2", yy(meanT))
+        .attr("stroke", "#cbd5e1").attr("stroke-dasharray", "3 3");
+      g.append("path").attr("d", d3.line().x((d, i) => x(i)).y(d => yy(d.temp_max)).curve(d3.curveMonotoneX)(data))
+        .attr("fill", "none").attr("stroke", "#4f46e5").attr("stroke-width", 1.6);
+      g.append("text").attr("x", 0).attr("y", -8).attr("font-size", 11).attr("font-weight", 600).attr("fill", "#1e1b4b").text((mo + 1) + " 月");
+      g.append("text").attr("x", fw).attr("y", -8).attr("text-anchor", "end").attr("font-size", 10).attr("fill", "#94a3b8")
+        .text("高 " + d3.max(data, d => d.temp_max).toFixed(0) + "° / 低 " + d3.min(data, d => d.temp_max).toFixed(0) + "°");
+      if (mo % cols === 0) {
+        g.append("g").call(d3.axisLeft(yy).ticks(3).tickSize(0))
+          .call(s => s.select(".domain").remove())
+          .call(s => s.selectAll("text").attr("font-size", 9).attr("fill", "#94a3b8"));
+      }
+      g.append("rect").attr("width", fw).attr("height", fh).attr("fill", "transparent")
+        .on("mouseover", e => tip.show("<b>" + (mo + 1) + " 月 · " + data.length + " 天</b><br/>日均最高温 " + d3.mean(data, d => d.temp_max).toFixed(1) + " °C<br/>最高 " + d3.max(data, d => d.temp_max).toFixed(1) + " °C · 最低 " + d3.min(data, d => d.temp_max).toFixed(1) + " °C<br/>降雨合计 " + d3.sum(data, d => d.rain_mm).toFixed(0) + " mm", e))
+        .on("mousemove", e => tip.move(e))
+        .on("mouseout", () => tip.hide());
+    });
+  }
+
+  /* ============================ ⑫ 堆叠面积 ============================ */
+  function chartStream() {
+    const W = 880, H = 360, m = { t: 34, r: 20, b: 34, l: 54 };
+    const { mount, svg } = mountSvg("stream", W, H);
+    const tip = makeTip(mount);
+    const keys = ["Camille", "Marie", "Jean"];
+    const colors = { Camille: "#312e81", Marie: "#6366f1", Jean: "#a5b4fc" };
+    const years = names.names.Marie.map(d => d.year);
+    const rows = years.map((y, i) => {
+      const o = { year: y, date: new Date(y, 0, 1) };
+      keys.forEach(k => (o[k] = names.names[k][i] ? names.names[k][i].count : 0));
+      return o;
+    });
+    const x = d3.scaleTime().domain([new Date(1900, 0, 1), new Date(2020, 0, 1)]).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([0, d3.max(rows, d => keys.reduce((s, k) => s + d[k], 0))]).nice().range([H - m.b, m.t]);
+    const area = d3.area().x(d => x(d.data.date)).y0(d => y(d[0])).y1(d => y(d[1])).curve(d3.curveMonotoneX);
+
+    gridY(svg, y, m.l, W - m.r);
+    d3.stack().keys(keys)(rows).forEach(layer => {
+      svg.append("path").datum(layer).attr("d", area)
+        .attr("fill", colors[layer.key]).attr("fill-opacity", 0.9)
+        .attr("stroke", "#ffffff").attr("stroke-width", 0.5);
+    });
+
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).ticks(d3.timeYear.every(10)).tickFormat(d3.timeFormat("%Y")))
+      .call(g => g.select(".domain").attr("stroke", "#cbd5e1"));
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).ticks(5, "~s").tickSize(0))
+      .call(g => g.select(".domain").remove());
+
+    svg.append("text").attr("x", m.l).attr("y", 15).attr("font-size", 11).attr("fill", "#94a3b8")
+      .text("厚度 = 当年三个名字的新生儿总数 · 只有最底层（Camille）的斜率可以直接读");
+
+    const focus = svg.append("g").style("display", "none");
+    focus.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "#1e1b4b").attr("stroke-dasharray", "3 3");
+    const bisect = d3.bisector(d => d.date).center;
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", W - m.l - m.r).attr("height", H - m.t - m.b)
+      .attr("fill", "transparent")
+      .on("mouseover", () => focus.style("display", null))
+      .on("mousemove", e => {
+        const [mx] = d3.pointer(e);
+        const d = rows[bisect(rows, x.invert(mx))];
+        focus.select("line").attr("x1", x(d.date)).attr("x2", x(d.date));
+        tip.show("<b>" + d.year + " 年</b><br/>Camille " + d.Camille + "<br/>Marie " + d.Marie + "<br/>Jean " + d.Jean +
+          "<br/>合计 " + (d.Camille + d.Marie + d.Jean) + " 人", e);
+      })
+      .on("mouseout", () => { focus.style("display", "none"); tip.hide(); });
+
+    const lg = svg.append("g").attr("transform", "translate(" + (W - m.r - 196) + ",14)");
+    keys.forEach((k, i) => {
+      lg.append("rect").attr("x", i * 64).attr("width", 10).attr("height", 10).attr("rx", 2).attr("fill", colors[k]);
+      lg.append("text").attr("x", i * 64 + 14).attr("y", 9).attr("font-size", 11).attr("fill", "#475569").text(k);
+    });
+  }
+
+  /* ============================ ⑬ 等值线 ============================ */
+  function chartContour() {
+    if (!extra.terrain) return errCard("contour", "补充数据 terrain10.csv 加载失败（CDN 离线时会跳过 E / F 区）。");
+    const W = 880, H = 420, m = { t: 30, r: 24, b: 26, l: 36 };
+    const { mount, svg } = mountSvg("contour", W, H);
+    const tip = makeTip(mount);
+    const grid = extra.terrain;
+    const cols = grid[0].length, rowsN = grid.length;
+    const cw = (W - m.l - m.r) / cols, ch = (H - m.t - m.b) / rowsN;
+    const [minV, maxV] = d3.extent(grid.flat());
+    const color = d3.scaleSequential(d3.interpolateBlues).domain([minV, maxV]);
+    const isoG = svg.append("g");
+
+    svg.append("g").selectAll("rect").data(grid.flatMap((row, j) => row.map((v, i) => ({ v, i, j })))).join("rect")
+      .attr("x", d => m.l + d.i * cw).attr("y", d => m.t + d.j * ch)
+      .attr("width", cw + 0.5).attr("height", ch + 0.5)
+      .attr("fill", d => color(d.v))
+      .on("mouseover", (e, d) => tip.show("<b>格点 (" + d.i + ", " + d.j + ")</b><br/>数值 " + d.v.toFixed(2), e))
+      .on("mousemove", e => tip.move(e))
+      .on("mouseout", () => tip.hide());
+
+    const drawIso = t => {
+      isoG.selectAll("path")
+        .data(marchingSquares(grid, t))
+        .join("path")
+        .attr("d", s => "M" + (m.l + s[0][0] * cw) + "," + (m.t + s[0][1] * ch) + "L" + (m.l + s[1][0] * cw) + "," + (m.t + s[1][1] * ch))
+        .attr("fill", "none").attr("stroke", "#1e1b4b").attr("stroke-width", 1.5).attr("opacity", 0.85);
+    };
+
+    const range = document.getElementById("gal-contour-range");
+    const out = document.getElementById("gal-contour-out");
+    const setT = v => {
+      const t = minV + (v / 100) * (maxV - minV);
+      if (out) out.textContent = t.toFixed(1);
+      drawIso(t);
+    };
+    if (range) {
+      range.addEventListener("input", e => setT(+e.target.value));
+      setT(+range.value);
+    } else {
+      setT(55);
+    }
+
+    svg.append("text").attr("x", m.l).attr("y", 15).attr("font-size", 11).attr("fill", "#94a3b8")
+      .text("数值域 " + minV.toFixed(1) + " ~ " + maxV.toFixed(1) + " · " + cols + "×" + rowsN + " 网格 · 黑线 = 等值线（Marching Squares 逐单元插值）");
+  }
+
+  /* ============================ ⑭ 斜率图 / 哑铃图 ============================ */
+  function chartSlope() {
+    if (!extra.gender || !extra.gender.length) return errCard("slope", "补充数据 1985CrimeGender.csv 加载失败（CDN 离线时会跳过 E / F 区）。");
+    const W = 880, H = 460, m = { t: 34, r: 84, b: 38, l: 132 };
+    const { mount, svg } = mountSvg("slope", W, H);
+    const tip = makeTip(mount);
+    const data = extra.gender.slice().sort((a, b) => (b.male + b.female) - (a.male + a.female));
+    const x = d3.scaleSqrt().domain([0, d3.max(data, d => Math.max(d.male, d.female))]).nice().range([m.l, W - m.r]);
+    const y = d3.scalePoint().domain(data.map(d => d.type)).range([m.t + 12, H - m.b]).padding(0.5);
+    const dot = Math.max(3.5, Math.min(6.5, (H - m.t - m.b) / data.length * 0.34));
+
+    x.ticks(6).forEach(t => {
+      svg.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", m.t).attr("y2", H - m.b)
+        .attr("stroke", "#eef2f7");
+    });
+    svg.append("g").attr("transform", "translate(" + m.l + ",0)")
+      .call(d3.axisLeft(y).tickSize(0))
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll("text").attr("font-size", 10.5).attr("fill", "#334155"));
+    svg.append("g").attr("transform", "translate(0," + (H - m.b) + ")")
+      .call(d3.axisBottom(x).ticks(6, "~s").tickSizeOuter(0))
+      .call(g => g.select(".domain").attr("stroke", "#cbd5e1"));
+
+    const fmtN = d3.format(",");
+    data.forEach(d => {
+      const cy = y(d.type);
+      const ratio = d.male + d.female ? (d.female / (d.male + d.female) * 100) : 0;
+      svg.append("line").attr("x1", x(d.male)).attr("x2", x(d.female)).attr("y1", cy).attr("y2", cy)
+        .attr("stroke", "#cbd5e1").attr("stroke-width", Math.max(2.5, dot * 1.1));
+      [[d.male, "#4338ca", "男性"], [d.female, "#94a3b8", "女性"]].forEach(([v, c, lab]) => {
+        svg.append("circle").attr("cx", x(v)).attr("cy", cy).attr("r", dot).attr("fill", c).attr("stroke", "#fff").attr("stroke-width", 1)
+          .on("mouseover", e => tip.show("<b>" + d.type + "</b> · " + lab + "<br/>" + fmtN(v) + " 人<br/>女性占比 " + ratio.toFixed(1) + "%", e))
+          .on("mousemove", e => tip.move(e))
+          .on("mouseout", () => tip.hide());
+      });
+    });
+
+    svg.append("text").attr("x", m.l).attr("y", 16).attr("font-size", 11).attr("fill", "#4338ca").text("● 男性");
+    svg.append("text").attr("x", m.l + 62).attr("y", 16).attr("font-size", 11).attr("fill", "#94a3b8").text("● 女性");
+    svg.append("text").attr("x", W - m.r).attr("y", 16).attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#94a3b8")
+      .text("按总量降序 · x 轴 = √人数");
+  }
+
+  /* ============================ ⑮ 数据质量对照 ============================ */
+  function chartQuality() {
+    if (!extra.students || !extra.badClass || !extra.badAge)
+      return errCard("quality", "补充数据 newstudent 系列加载失败（CDN 离线时会跳过 E / F 区）。");
+    const W = 880, H = 360, m = { t: 52, r: 24, b: 42, l: 40 };
+    const { mount, svg } = mountSvg("quality", W, H);
+    const tip = makeTip(mount);
+    const S = extra.students, BC = extra.badClass, BA = extra.badAge;
+    const nDistinct = rows => new Set(rows.map(r => r["班级"])).size;
+    const nBadAge = rows => rows.filter(r => !/^\d+$/.test(r["年龄"] || "")).length;
+    const panels = [
+      { title: "① 一致性 · 班级类别数", unit: "个不同班级名", a: nDistinct(S), b: nDistinct(BC) },
+      { title: "② 准确性 · 年龄非法值", unit: "个非数值单元格", a: nBadAge(S), b: nBadAge(BA) },
+    ];
+    const pw = (W - m.l - m.r - 48) / 2;
+
+    svg.append("text").attr("x", m.l).attr("y", 18).attr("font-size", 11).attr("fill", "#94a3b8")
+      .text("同一份 480 行新生表，只改 5 行，两个质量维度同时崩掉 · 蓝 = 原始数据，红 = 出错版本");
+
+    panels.forEach((p, pi) => {
+      const x0 = m.l + pi * (pw + 48);
+      const yy = d3.scaleLinear().domain([0, Math.max(p.a, p.b) * 1.3]).range([H - m.b, m.t + 10]);
+      const g = svg.append("g").attr("transform", "translate(" + x0 + ",0)");
+      g.append("text").attr("x", 0).attr("y", 40).attr("font-size", 12.5).attr("font-weight", 600).attr("fill", "#1e1b4b").text(p.title);
+      g.append("text").attr("x", 0).attr("y", 54).attr("font-size", 10.5).attr("fill", "#94a3b8").text("单位：" + p.unit);
+      g.append("line").attr("x1", 0).attr("x2", pw).attr("y1", H - m.b).attr("y2", H - m.b).attr("stroke", "#cbd5e1");
+      const bw = (pw - 72) / 2;
+      [["原始数据", p.a, "#6366f1"], ["出错版本", p.b, "#dc2626"]].forEach(([lab, v, c], i) => {
+        const bx = 40 + i * (bw + 32);
+        g.append("rect").attr("x", bx).attr("y", yy(v)).attr("width", bw)
+          .attr("height", Math.max(1.5, H - m.b - yy(v))).attr("rx", 3).attr("fill", c)
+          .on("mouseover", e => tip.show("<b>" + lab + "</b><br/>" + p.unit + " = " + v + "<br/>占 480 行的 " + (v / 480 * 100).toFixed(1) + "%", e))
+          .on("mousemove", e => tip.move(e))
+          .on("mouseout", () => tip.hide());
+        g.append("text").attr("x", bx + bw / 2).attr("y", yy(v) - 7).attr("text-anchor", "middle")
+          .attr("font-size", 13).attr("font-weight", 600).attr("fill", c).text(v);
+        g.append("text").attr("x", bx + bw / 2).attr("y", H - m.b + 17).attr("text-anchor", "middle")
+          .attr("font-size", 10.5).attr("fill", "#64748b").text(lab);
+      });
+    });
+  }
+
+  /* ---------- 4. 依次渲染（隔离错误，单张失败不影响其他） ---------- */
+  [
+    chartBar, chartHist, chartBox, chartTree,
+    chartScatter, chartHeat, chartParCoords,
+    chartLine, chartCalendar, chartSpiral,
+    chartSmallMult, chartStream, chartContour, chartSlope, chartQuality,
+  ].forEach(fn => {
+    try { fn(); } catch (err) { console.error("[gallery] " + fn.name + " 渲染失败：", err); }
+  });
+}
+</script>
+</body>
+</html>
