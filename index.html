@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="portal.title">《可视化导论》课程门户</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="i18n.css" />
+  <link rel="stylesheet" href="portal.css" />
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="portal.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="hero-tag">VISUALIZATION · INTRODUCTION</p>
+      <h1 data-i18n="portal.hero.h1">《可视化导论》</h1>
+      <p class="hero-subtitle" data-i18n="portal.hero.subtitle">从数据到图表：JavaScript + D3.js 实战课程</p>
+      <p class="hero-meta" data-i18n-html="portal.hero.meta">中国石油大学（华东）· 授课教师：<a href="https://cinger007.github.io" target="_blank" rel="noopener" class="teacher-link">李昕</a> · 主要参考教材：陈为《可视化导论》</p>
+
+      <div class="hero-cta">
+        <a class="primary" href="#path">🧭 从学习路径开始</a>
+        <a class="ghost" href="cheatsheet.html">🎯 图表选型决策器</a>
+        <a class="ghost" href="glossary.html">📖 术语表</a>
+        <a class="ghost" href="gallery.html">🖼 可视化画廊</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat"><b>5</b><span>章</span></div>
+        <div class="hero-stat"><b>27</b><span>小节</span></div>
+        <div class="hero-stat"><b>30+</b><span>可运行演示</span></div>
+        <div class="hero-stat"><b>0</b><span>构建依赖</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <a href="#path">🧭 学习路径</a>
+    <a href="#chapters" data-i18n="portal.nav.chapters">📚 章节</a>
+    <a href="#conceptmap">🕸 概念地图</a>
+    <a href="#progress">📈 学习进度</a>
+    <a href="#search">🔍 全局搜索</a>
+    <a href="#tools">🧰 学习工具</a>
+    <a href="#about" data-i18n="portal.nav.about">ℹ️ 关于</a>
+  </nav>
+
+  <main>
+    <!-- ===================== 学习路径 ===================== -->
+    <section id="path" class="section">
+      <h2>🧭 学习路径</h2>
+      <p class="sec-lead-wide">
+        五章之间存在明确的<b>先后依赖</b>：先有数据（第 1 章），才谈流程（第 2 章）；
+        色彩（第 3 章）是视觉映射中最难的一个通道，低维（第 4 章）与
+        时序（第 5 章）则分别解决“空间”和“时间”两类数据。按下面的顺序走，不会卡壳。
+      </p>
+      <div class="viz-card">
+        <p class="viz-hint">点击任一阶段卡片可直接进入对应章节 · 卡片下方标注的是<b>前置章节</b>。</p>
+        <div id="roadmap"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 课程章节 ===================== -->
+    <section id="chapters" class="section">
+      <h2 data-i18n="portal.tagline">📚 课程章节</h2>
+      <p class="section-lead" data-i18n="portal.intro">点击任一卡片进入该章节，每章节含 3 个 tab：📖 讲解 / ⌨️ 关键代码 / ▶️ 演示。</p>
+
+      <div class="cards">
+        <!-- 第 1 章：数据 -->
+        <a class="card available" href="lesson-01/" data-chapter="1">
+          <div class="card-status" data-i18n="common.live">✅ 已上线</div>
+          <div class="card-num" data-i18n="card-01.num">第 1 章</div>
+          <h3 data-i18n="card-01.title">数据</h3>
+          <p class="card-source"><span data-i18n="common.maps-to">对应你的文档：</span><strong>3. 数据</strong></p>
+          <p class="card-desc" data-i18n="card-01.desc">从 DeepSeek 合成新生数据出发，展开数据生成、DIKW、Stevens 测量尺度、Mackinlay 视觉通道、D3 数据变换与 Data-Join 三态。</p>
+          <ul class="card-tags">
+            <li>DIKW 金字塔</li>
+            <li>Stevens 4 尺度</li>
+            <li>8 个 D3 变换函数</li>
+            <li>Selection 三态</li>
+          </ul>
+          <div class="card-meta">
+            <span class="badge diff-1">难度 ★</span>
+            <span class="badge">⏱ 约 2 小时 · 5 节</span>
+            <span class="badge">前置：无（起点）</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar"><i></i></div>
+            <span class="card-progress-text">0 / 5 节已掌握</span>
+          </div>
+          <div class="card-cta" data-i18n="common.enter">进入章节 →</div>
+        </a>
+
+        <!-- 第 2 章：流程 -->
+        <a class="card available" href="lesson-02/" data-chapter="2">
+          <div class="card-status" data-i18n="common.live">✅ 已上线</div>
+          <div class="card-num" data-i18n="card-02.num">第 2 章</div>
+          <h3 data-i18n="card-02.title">数据可视化流程</h3>
+          <p class="card-source"><span data-i18n="common.maps-to">对应你的文档：</span><strong>4. 数据可视化流程</strong></p>
+          <p class="card-desc" data-i18n="card-02.desc">Card 数据流模型、新生数据 → 分类树 → 树形列表的完整链路，Reingold-Tilford 布局、DOM 事件机制。</p>
+          <ul class="card-tags">
+            <li>Card 模型</li>
+            <li>d3.rollup</li>
+            <li>Reingold-Tilford</li>
+            <li>事件委托</li>
+          </ul>
+          <div class="card-meta">
+            <span class="badge diff-2">难度 ★★</span>
+            <span class="badge">⏱ 约 2 小时 · 4 节</span>
+            <span class="badge">前置：第 1 章 · 数据</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar"><i></i></div>
+            <span class="card-progress-text">0 / 4 节已掌握</span>
+          </div>
+          <div class="card-cta" data-i18n="common.enter">进入章节 →</div>
+        </a>
+
+        <!-- 第 3 章：色彩专题 -->
+        <a href="lesson-03/" class="card available" data-chapter="3">
+          <div class="card-status" data-i18n="common.live">✅ 已上线</div>
+          <div class="card-num" data-i18n="card-03.num">第 3 章</div>
+          <h3 data-i18n="card-03.title">色彩专题</h3>
+          <p class="card-source" data-i18n="portal.cards.source-prefix"><span>独立专题：</span><strong data-i18n="portal.cards.color-bold">颜色是可视化基础</strong></p>
+          <p class="card-desc" data-i18n="card-03.desc">颜色模型 + colormap + Lab 色域 + 5 大色系 + 经典科研配色 + 对错案例 + <strong>鲜艳+低饱和哲学生成器</strong> + CVD 论文图测。8 小节，配色一站式。</p>
+          <ul class="card-tags">
+            <li>4 颜色空间 + CVD</li>
+            <li>Wong / Paul Tol</li>
+            <li>5 大色系规则</li>
+            <li>鲜艳+低饱和</li>
+            <li>CVD 论文图测</li>
+          </ul>
+          <div class="card-meta">
+            <span class="badge diff-2">难度 ★★</span>
+            <span class="badge">⏱ 约 3 小时 · 8 节</span>
+            <span class="badge">前置：第 1 章 · 数据属性</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar"><i></i></div>
+            <span class="card-progress-text">0 / 8 节已掌握</span>
+          </div>
+          <div class="card-cta" data-i18n="portal.cta.enter3">进入专题 →</div>
+        </a>
+
+        <!-- 第 4 章：低维数据可视化 -->
+        <a href="lesson-04/" class="card available" data-chapter="4">
+          <div class="card-status" data-i18n="common.live">✅ 已上线</div>
+          <div class="card-num" data-i18n="card-04.num">第 4 章</div>
+          <h3 data-i18n="card-04.title">低维数据可视化</h3>
+          <p class="card-source"><span data-i18n="common.maps-to">对应你的文档：</span><strong>5. 低维数据可视化</strong></p>
+          <p class="card-desc" data-i18n="card-04.desc">Crime 数据坐标变换、10 种曲线拟合、Cleveland 45° 倾角、Marching Squares 等值线，共 5 小节。</p>
+          <ul class="card-tags">
+            <li>三层坐标变换</li>
+            <li>10 种曲线</li>
+            <li>Cleveland 45°</li>
+            <li>Marching Squares</li>
+          </ul>
+          <div class="card-meta">
+            <span class="badge diff-3">难度 ★★★</span>
+            <span class="badge">⏱ 约 2 小时 · 5 节</span>
+            <span class="badge">前置：第 2 章 · 流程</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar"><i></i></div>
+            <span class="card-progress-text">0 / 5 节已掌握</span>
+          </div>
+          <div class="card-cta" data-i18n="common.enter">进入章节 →</div>
+        </a>
+
+        <!-- 第 5 章：时序数据可视化 -->
+        <a href="lesson-05/" class="card available" data-chapter="5">
+          <div class="card-status" data-i18n="common.live">✅ 已上线</div>
+          <div class="card-num" data-i18n="card-05.num">第 5 章</div>
+          <h3 data-i18n="card-05.title">时序数据可视化</h3>
+          <p class="card-source"><span data-i18n="common.maps-to">对应你的文档：</span><strong>6. 时序数据可视化</strong></p>
+          <p class="card-desc" data-i18n="card-05.desc">5 个时间属性、法国人名时间序列、van Wijk 日历热图、阿基米德螺旋日历、Storyline 故事线（《侏罗纪公园》案例）。</p>
+          <ul class="card-tags">
+            <li>时间分解</li>
+            <li>日历 colormap</li>
+            <li>极坐标变换</li>
+            <li>Storygraph</li>
+          </ul>
+          <div class="card-meta">
+            <span class="badge diff-3">难度 ★★★</span>
+            <span class="badge">⏱ 约 2 小时 · 5 节</span>
+            <span class="badge">前置：第 4 章 · 低维可视化</span>
+          </div>
+          <div class="card-progress">
+            <div class="card-progress-bar"><i></i></div>
+            <span class="card-progress-text">0 / 5 节已掌握</span>
+          </div>
+          <div class="card-cta" data-i18n="common.enter">进入章节 →</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===================== 概念地图 ===================== -->
+    <section id="conceptmap" class="section">
+      <h2>🕸 课程概念地图</h2>
+      <p class="sec-lead-wide">
+        每个圆点 = 一个小节，<b>颜色 = 所属章节</b>；圆点大小反映该节的<b>工具/概念密度</b>，
+        连线表示<b>先修或交叉引用</b>关系。跨章连线（如「数据属性 → 视觉映射」「Lab → 色系」）是这门课最值得留意的知识迁移点。
+      </p>
+      <div class="viz-card">
+        <p class="viz-hint"><kbd>拖动</kbd> 节点可手动调整布局 · <kbd>点击</kbd> 圆点直接跳到该小节的「讲解」 · 点击下方图例可聚焦某一章。</p>
+        <div id="conceptmap"></div>
+        <div class="cm-legend" id="cm-legend"></div>
+        <div class="cm-tip" id="cm-tip">提示：点击任一圆点直接跳到对应小节的「讲解」。</div>
+      </div>
+    </section>
+
+    <!-- ===================== 学习进度 ===================== -->
+    <section id="progress" class="section">
+      <h2>📈 学习进度总览</h2>
+      <p class="sec-lead-wide">
+        在每个小节的顶部点一下「标记本节已掌握」，进度就会记录在本机浏览器里，并在这里汇总。
+        数据只存 local storage，不上传任何服务器。
+      </p>
+      <div class="viz-card">
+        <div class="progress-wrap">
+          <div class="progress-ring-holder">
+            <div id="progress-ring"></div>
+            <div class="progress-ring-label" id="progress-label"><b>0%</b><span>0 / 27 小节已掌握</span></div>
+          </div>
+          <div class="progress-rows" id="progress-rows"></div>
+        </div>
+        <div class="progress-actions">
+          <button id="progress-reset" type="button">重置全部进度</button>
+          <a class="badge" style="text-decoration:none" href="#chapters">去选一个章节开始 →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 全局搜索 ===================== -->
+    <section id="search" class="section">
+      <h2>🔍 全局搜索</h2>
+      <p class="sec-lead-wide">
+        输入任意关键词（章名、小节名、算法名、术语）即可跨 5 章检索；结果直接跳到对应小节。
+      </p>
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+        </svg>
+        <input id="search-input" type="search" placeholder="试试：rollup / 视觉通道 / Lab / 螺旋 / 色盲 …" autocomplete="off" />
+      </div>
+      <div class="search-filters" id="search-filters"></div>
+      <div class="search-results" id="search-results"></div>
+      <div class="search-hot" id="search-hot"><span>热门：</span></div>
+    </section>
+
+    <!-- ===================== 学习工具 ===================== -->
+    <section id="tools" class="section">
+      <h2>🧰 学习工具</h2>
+      <div class="tool-grid">
+        <a class="tool-card" href="cheatsheet.html">
+          <div class="tc-ico">🎯</div>
+          <h3>图表选型决策器</h3>
+          <p>回答 3 个关于「数据关系 / 变量个数 / 强调什么」的问题，交互式给出推荐图表类型、适用理由、常见误用与 D3 最小代码骨架。</p>
+        </a>
+        <a class="tool-card" href="glossary.html">
+          <div class="tc-ico">📖</div>
+          <h3>可视化术语表</h3>
+          <p>把 5 章里出现的中英术语、人物与经典算法集中成一张可搜索的表，配一句话解释与原课小节链接。</p>
+        </a>
+        <a class="tool-card" href="gallery.html">
+          <div class="tc-ico">🖼</div>
+          <h3>可视化画廊</h3>
+          <p>用课程自带的 4 份真实数据，把同一份数据画出 10 种图（柱/直方/箱线/树图/散点/热力/平行坐标/折线/日历/螺旋），全部可交互对比。</p>
+        </a>
+        <a class="tool-card" href="supplementary/">
+          <div class="tc-ico">🧪</div>
+          <h3>补充 demo 集合</h3>
+          <p>原站保留的独立可运行 demo（日历、等值线、散点、树形列表、表格等），用于课堂延伸与作业参考。</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===================== 使用方式 ===================== -->
+    <section id="howto" class="section">
+      <h2 data-i18n="portal.nav.howto">▶️ 使用方式</h2>
+      <div class="howto-grid">
+        <div class="howto-card">
+          <h3 data-i18n="portal.usage.classroom.title">🎓 课堂讲解</h3>
+          <p data-i18n="portal.usage.classroom.desc">打开任一章节后，左侧选小节，顶部切换 <strong>讲解 / 代码 / 演示</strong> 三个 tab，<strong>一边讲解、一边实时运行</strong>。</p>
+        </div>
+        <div class="howto-card">
+          <h3 data-i18n="portal.usage.student.title">📖 学生自学</h3>
+          <p data-i18n="portal.usage.student.desc">按章节顺序过完所有 <strong>⭐ 关键点</strong>，每个关键点配有「为什么这么写」+「有什么坑」段落。</p>
+        </div>
+        <div class="howto-card">
+          <h3 data-i18n="portal.usage.teacher.title">💻 教师备课时</h3>
+          <p data-i18n="portal.usage.teacher.desc">每个章节有 1 套独立的 <code>demo/</code> 子目录，可以单独跑、单独改、单独打包给学生。</p>
+        </div>
+        <div class="howto-card">
+          <h3 data-i18n="portal.usage.lan.title">📶 局域网使用</h3>
+          <p data-i18n="portal.usage.lan.desc">若公网不通，可在本机跑 <code>python -m http.server 8080</code>，学生连同一 WiFi 即可访问。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 关于 ===================== -->
+    <section id="about" class="section">
+      <h2 data-i18n="portal.nav.about">ℹ️ 关于本课程</h2>
+      <div class="about">
+        <div class="about-item">
+          <h4 data-i18n="portal.about.theory">📖 理论来源</h4>
+          <p data-i18n="portal.about.theory.desc">陈为《可视化导论》、Mackinlay 1986、Stevens 1946、Cleveland 1984、Bostock D3 官方文档、Card 1999 数据流模型。</p>
+        </div>
+        <div class="about-item">
+          <h4 data-i18n="portal.about.principle">🎯 设计原则</h4>
+          <p data-i18n="portal.about.principle.desc"><strong>案例为中心</strong>（不是理论为中心）。每个知识点都嵌入到用户的实践案例里，配 ⭐ 关键点解释 + 可运行演示。</p>
+        </div>
+        <div class="about-item">
+          <h4 data-i18n="portal.about.stack">🛠️ 技术栈</h4>
+          <p data-i18n="portal.about.stack.desc">零依赖：纯 HTML + CSS + ES modules + D3.js v7 (CDN)。本地一条命令 <code>python -m http.server</code> 启动，无需 npm。</p>
+        </div>
+        <div class="about-item">
+          <h4 data-i18n="portal.about.data">📦 数据集</h4>
+          <p data-i18n="portal.about.data.desc">新生数据 CSV 与 Crime 数据等都已打包进 <code>data/</code> 目录，浏览器 fetch 加载，离线可用。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p data-i18n-html="footer.copyright">© 2026 《可视化导论》课程 · 中国石油大学（华东）· 授课教师：<a href="https://cinger007.github.io" target="_blank" rel="noopener" class="teacher-link">李昕</a> · 主要参考教材：陈为《可视化导论》</p>
+    <p class="footer-meta" data-i18n="footer.meta">零依赖 · D3.js v7 · 部署于 WorkBuddy Sites</p>
+  </footer>
+</body>
+</html>
